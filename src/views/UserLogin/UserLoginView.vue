@@ -3,7 +3,7 @@
       <div class="slider">
         <div :class="active ===1? 'form':'form hidden'">
           <div class="title">
-            欢迎 <b>回来</b>
+            用户你好，欢迎 <b>回来</b>
           </div>
           <div class="subtitle">
             登录你的账户
