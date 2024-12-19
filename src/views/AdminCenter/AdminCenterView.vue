@@ -1,13 +1,13 @@
 <template>
   <div class="all">
     <div class="main">
-      <div class="list">
+      <div class="selectlist">
         <p @click="choosePostAudit">帖子审核</p>
         <p @click="chooseUserComplain">用户投诉</p>
         <p @click="choosePostComplain">帖子投诉</p>
         <p @click="chooseCategoryAdd">新增分类</p>
       </div>
-      <div class="content">
+      <div class="component">
         <PostAuditComponent v-if="contentclass=='postaudit'"/>
         <UserComplainComponent v-else-if="contentclass=='usercomplain'"/>
         <PostComplainComponent v-else-if="contentclass=='postcomplain'"/>
@@ -19,10 +19,10 @@
 
 <script setup>
 import { ref } from 'vue'
-import PostAuditComponent from './components/PostAuditComponent.vue';
-import UserComplainComponent from './components/UserComplainComponent.vue';
-import PostComplainComponent from './components/PostComplainComponent.vue';
-import CategoryAddComponent from './components/CategoryAddComponent.vue';
+import PostAuditComponent from './components/PostAudit.vue';
+import UserComplainComponent from './components/UserComplain.vue';
+import PostComplainComponent from './components/PostComplain.vue';
+import CategoryAddComponent from './components/CategoryAdd.vue';
 
 let contentclass = ref('postaudit')
 
@@ -52,12 +52,12 @@ function chooseCategoryAdd() {
   margin-top: 200px;
 }
 
-.list {
+.selectlist {
   width: 15%;
   float: left;
 }
 
-.list p {
+.selectlist p {
   display: block;
   width: 100%;
   height: 80px;
@@ -71,16 +71,16 @@ function chooseCategoryAdd() {
   margin-block-end: 0em;
 }
 
-.list p:hover {
+.selectlist p:hover {
   background-color: #608dd9;
 }
 
-.content {
+.component {
   float: right;
   width: 80%;
 }
 
-.content > * {
+.component > * {
   width: 100%;
 }
 </style>
