@@ -5,8 +5,8 @@
     <div>帖子种类：{{ oneAuditPostInfo.categoryName }}</div>
     <div>发布时间：{{ oneAuditPostInfo.publishTime }}</div>
     <div @click="isPostDetail=true" class="button" style="background-color: blue;">详情</div>
-    <div @click="deleteConfirm" class="button" style="background-color: green;">审核通过</div>
-    <div @click="deleteConfirm" class="button" style="background-color: red;">审核不通过</div>
+    <div @click="choosePass" class="button" style="background-color: green;">审核通过</div>
+    <div @click="chooseRefund" class="button" style="background-color: red;">审核不通过</div>
     <el-dialog title="帖子详情" v-model="isPostDetail">
       <div style="font-size: 30px;color: black;font-weight: 300;display: flex;justify-content: center;">{{ oneAuditPostInfo.postTitle }}</div>
       <div style="font-size: 15px;color: gray;font-weight: 100;display: flex;justify-content: center;">{{ oneAuditPostInfo.authorName }}</div>
@@ -20,6 +20,7 @@
 import { ref } from 'vue'
 import { AuditPostInfo } from '@/utils/structures';
 import { defineProps, defineEmits } from 'vue';
+import { postPass, postRefund } from '@/apis/admin';
 
 const props = defineProps({
   oneAuditPostInfo: {
@@ -34,7 +35,15 @@ const props = defineProps({
 
 let isPostDetail=ref(false)
 
-// let postId = props.onePostAuditIntro.postId
+const choosePass=async()=>{
+  await postPass(props.oneAuditPostInfo.postId)
+  deleteConfirm()
+}
+
+const chooseRefund=async()=>{
+  await postRefund(props.oneAuditPostInfo.postId)
+  deleteConfirm()
+}
 
 let emit = defineEmits(['delete'])
 let deleteConfirm = () => {

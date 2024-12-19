@@ -14,7 +14,7 @@
 import { AuditPostInfo } from '@/utils/structures';
 import { ref, onMounted } from 'vue'
 import OnePostAuditIntro from './OnePostAuditIntro.vue';
-import { getAuditPostInfo } from '@/apis/adminapi';
+import { getAuditPostInfo } from '@/apis/admin';
 
 let isLoading=ref(true)
 let isEmpty=ref(false)
@@ -29,12 +29,16 @@ const deletePostAudit = (index) => {
 
 onMounted(async () => {
   let getAuditPostInfos=await getAuditPostInfo()
-  console.log(getAuditPostInfos)
-  for(let oneGetInfo of getAuditPostInfos){
-    let oneInfo=new AuditPostInfo(oneGetInfo.postId,oneGetInfo.postTitle,oneGetInfo.categoryName,oneGetInfo.publishTime,oneGetInfo.postContent,oneGetInfo.authorId,oneGetInfo.authorName)
-    auditPostInfos.value.push(oneInfo)
+  if(getAuditPostInfos!=null){
+    for(let oneGetInfo of getAuditPostInfos){
+      let oneInfo=new AuditPostInfo(oneGetInfo.postId,oneGetInfo.postTitle,oneGetInfo.categoryName,oneGetInfo.publishTime,oneGetInfo.postContent,oneGetInfo.authorId,oneGetInfo.authorName)
+      auditPostInfos.value.push(oneInfo)
+    }
   }
   isLoading.value=false
+  if(auditPostInfos.value.length==0){
+        isEmpty.value=true;
+  }
 })
 </script>
 
