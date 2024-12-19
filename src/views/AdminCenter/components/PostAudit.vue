@@ -12,15 +12,13 @@
 
 <script setup>
 import { AuditPostInfo } from '@/utils/structures';
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import OnePostAuditIntro from './OnePostAuditIntro.vue';
+import { getAuditPostInfo } from '@/apis/adminapi';
 
-let isLoading=ref(false)
+let isLoading=ref(true)
 let isEmpty=ref(false)
 let auditPostInfos=ref([])
-
-let one=new AuditPostInfo(1,'你好','教学',new Date().toString(),"你好，世界！",1,'李华')
-auditPostInfos.value.push(one)
 
 const deletePostAudit = (index) => {
   auditPostInfos.value.splice(index, 1)
@@ -28,6 +26,16 @@ const deletePostAudit = (index) => {
         isEmpty.value=true;
   }
 }
+
+onMounted(async () => {
+  let getAuditPostInfos=await getAuditPostInfo()
+  console.log(getAuditPostInfos)
+  for(let oneGetInfo of getAuditPostInfos){
+    let oneInfo=new AuditPostInfo(oneGetInfo.postId,oneGetInfo.postTitle,oneGetInfo.categoryName,oneGetInfo.publishTime,oneGetInfo.postContent,oneGetInfo.authorId,oneGetInfo.authorName)
+    auditPostInfos.value.push(oneInfo)
+  }
+  isLoading.value=false
+})
 </script>
 
 <style>

@@ -8,9 +8,10 @@
     <div @click="deleteConfirm" class="button" style="background-color: green;">审核通过</div>
     <div @click="deleteConfirm" class="button" style="background-color: red;">审核不通过</div>
     <el-dialog title="帖子详情" v-model="isPostDetail">
-      <div>
-        你好，世界！
-      </div>
+      <div style="font-size: 30px;color: black;font-weight: 300;display: flex;justify-content: center;">{{ oneAuditPostInfo.postTitle }}</div>
+      <div style="font-size: 15px;color: gray;font-weight: 100;display: flex;justify-content: center;">{{ oneAuditPostInfo.authorName }}</div>
+      <div style="font-size: 15px;color: gray;font-weight: 100;display: flex;justify-content: center;">{{ oneAuditPostInfo.publishTime }}</div>
+      <div style="font-size: 20px;color: black;font-weight: 200;">{{ oneAuditPostInfo.postContent }}</div>
     </el-dialog>
   </div>
 </template>
