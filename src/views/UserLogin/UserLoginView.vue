@@ -9,14 +9,14 @@
             登录你的账户
           </div>
           <div class="inputf">
-            <input type="text" placeholder="用户名"/>
-            <span class="label">用户名</span>
+            <input v-model="userlogin.account" type="text" placeholder="账号"/>
+            <span class="label">账号</span>
           </div>
           <div class="inputf">
-            <input type="text" placeholder="密码"/>
+            <input v-model="userlogin.password" type="text" placeholder="密码"/>
             <span class="label">密码</span>
           </div>
-          <button class="button1">登录</button>
+          <button @click="login" class="button1">登录</button>
         </div>
         <div :class="active ===2?'form':'form hidden'" >
           <div class="title">
@@ -26,22 +26,26 @@
             创建你的账户
           </div>
           <div class="inputf">
-            <input type="text" placeholder="用户名"/>
+            <input v-model="userregister.nickname" type="text" placeholder="用户名"/>
             <span class="label">用户名</span>
           </div>
           <div class="inputf">
-            <input type="text" placeholder="邮箱"/>
+            <input v-model="userregister.account" type="text" placeholder="账号"/>
+            <span class="label">账号</span>
+          </div>
+          <div class="inputf">
+            <input v-model="userregister.passwword" type="text" placeholder="密码"/>
+            <span class="label">密码</span>
+          </div>
+          <div class="inputf">
+            <input v-model="userregister.email" type="text" placeholder="邮箱"/>
             <span class="label">邮箱</span>
           </div>
           <div class="inputf">
-            <input type="text" placeholder="联系方式"/>
-            <span class="label">联系方式</span>
+            <input v-model="userregister.avatarUrl" type="text" placeholder="头像url"/>
+            <span class="label">头像</span>
           </div>
-          <div class="inputf">
-            <input type="text" placeholder="密码"/>
-            <span class="label">密码</span>
-          </div>
-          <button class="button1">注册</button>
+          <button @click="register" class="button1">注册</button>
         </div>
         <div :class="active ===1?'card':'card active'">
           <div class="head">
@@ -68,8 +72,61 @@
 
 <script setup>
 import {ref} from "vue"
+import { reactive } from 'vue';
+import axios from "axios";
+import { useRouter } from 'vue-router';  // 导入 useRouter
+import { loginuser } from '@/apis/login';  // 导入封装的 login API
 
 const active = ref(1)
+// 获取 router 实例
+const router = useRouter();
+
+const userlogin = reactive({
+  account:'',
+  password:''
+});
+
+const userregister = reactive({
+  nickname:'',
+  account:'',
+  passwword:'',
+  email:'',
+  avatarUrl:''
+})
+
+function login(){
+  console.log("用户输入信息为",userlogin);
+  loginuser(userlogin).then((response)=>{
+    console.log("获取信息为",response);
+    if(response.data.code===1){
+      console.log("登录成功");
+      localStorage.setItem("token",response.data.data);
+      router.push("/usercenter");
+    }else{
+      console.log("登录失败");
+    }
+
+  }).catch(error =>{
+    console.log("登录出错",error);
+  })
+}
+
+function register(){
+  console.log("用户输入信息为",userregister);
+  axios.post("http://localhost:8085/user/register",userregister).then((response)=>{
+    console.log("获取信息为",response);
+    if(response.data.code===1){
+      console.log("注册成功");
+      localStorage.setItem("token",response.data.data);
+      router.push("/usercenter");
+    }else{
+      console.log("注册失败");
+    }
+  }).catch(error =>{
+    console.log("注册出错",error);
+  })
+}
+
 
 </script>
 

@@ -17,6 +17,7 @@ const router = createRouter({
       path: '/',
       name: 'layout',
       component: LayoutView,
+      meta:{authRequired:true},
       children: [
         {
           path: '',
@@ -62,5 +63,6 @@ const router = createRouter({
     }
   ]
 });
- 
+
+
 export default router;
