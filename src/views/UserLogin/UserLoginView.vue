@@ -73,9 +73,9 @@
 <script setup>
 import {ref} from "vue"
 import { reactive } from 'vue';
-import axios from "axios";
 import { useRouter } from 'vue-router';  // 导入 useRouter
 import { loginuser } from '@/apis/login';  // 导入封装的 login API
+import {registeruser} from "@/apis/register";
 
 const active = ref(1)
 // 获取 router 实例
@@ -113,7 +113,7 @@ function login(){
 
 function register(){
   console.log("用户输入信息为",userregister);
-  axios.post("http://localhost:8085/user/register",userregister).then((response)=>{
+  registeruser(userregister).then((response)=>{
     console.log("获取信息为",response);
     if(response.data.code===1){
       console.log("注册成功");

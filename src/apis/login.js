@@ -7,3 +7,11 @@ export function loginuser(userlogin={}){
         data:userlogin
     })
 }
+
+export function loginadmin(adminlogin={}){
+    return request({
+        method: 'POST',
+        url: '/admin/login',
+        data:adminlogin
+    })
+}

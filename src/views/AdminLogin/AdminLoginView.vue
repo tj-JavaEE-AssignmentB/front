@@ -9,14 +9,14 @@
           登录你的账户
         </div>
         <div class="inputf">
-          <input type="text" placeholder="用户名"/>
-          <span class="label">用户名</span>
+          <input v-model="adminlogin.account" type="text" placeholder="账号"/>
+          <span class="label">账号</span>
         </div>
         <div class="inputf">
-          <input type="text" placeholder="密码"/>
+          <input v-model="adminlogin.password" type="text" placeholder="密码"/>
           <span class="label">密码</span>
         </div>
-        <button class="button1">登录</button>
+        <button @click="login" class="button1">登录</button>
       </div>
       <div :class="active ===2?'form':'form hidden'" >
         <div class="title">
@@ -26,22 +26,14 @@
           创建你的账户
         </div>
         <div class="inputf">
-          <input type="text" placeholder="用户名"/>
-          <span class="label">用户名</span>
+          <input v-model="adminregister.account" type="text" placeholder="账号"/>
+          <span class="label">账号</span>
         </div>
         <div class="inputf">
-          <input type="text" placeholder="邮箱"/>
-          <span class="label">邮箱</span>
-        </div>
-        <div class="inputf">
-          <input type="text" placeholder="联系方式"/>
-          <span class="label">联系方式</span>
-        </div>
-        <div class="inputf">
-          <input type="text" placeholder="密码"/>
+          <input v-model="adminregister.password" type="text" placeholder="密码"/>
           <span class="label">密码</span>
         </div>
-        <button class="button1">注册</button>
+        <button @click="register" class="button1">注册</button>
       </div>
       <div :class="active ===1?'card':'card active'">
         <div class="head">
@@ -67,9 +59,59 @@
 </template>
 
 <script setup>
+import { reactive } from 'vue';
+import { useRouter } from 'vue-router';  // 导入 useRouter
+import {loginadmin} from '@/apis/login';  // 导入封装的 login API
+import {registeradmin} from "@/apis/register";
+
 import {ref} from "vue"
 
 const active = ref(1)
+
+const router = useRouter();
+
+const adminlogin = reactive({
+  account:'',
+  password:''
+});
+
+const adminregister = reactive({
+  account:'',
+  passwword:''
+})
+
+function login(){
+  console.log("管理员输入信息为",adminlogin);
+  loginadmin(adminlogin).then((response)=>{
+    console.log("获取信息为",response);
+    if(response.data.code===1){
+      console.log("登录成功");
+      localStorage.setItem("token",response.data.data);
+      router.push("/usercenter");
+    }else{
+      console.log("登录失败");
+    }
+
+  }).catch(error =>{
+    console.log("登录出错",error);
+  })
+}
+
+function register(){
+  console.log("管理员输入信息为",adminregister);
+  registeradmin(adminregister).then((response)=>{
+    console.log("获取信息为",response);
+    if(response.data.code===1){
+      console.log("注册成功");
+      localStorage.setItem("token",response.data.data);
+      router.push("/usercenter");
+    }else{
+      console.log("注册失败");
+    }
+  }).catch(error =>{
+    console.log("注册出错",error);
+  })
+}
 
 </script>
 
