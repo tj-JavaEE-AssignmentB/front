@@ -19,7 +19,6 @@ export const getAuditPostInfo=async()=>{
 
 export const postPass=async(postId)=>{
   try{
-    console.log(postId)
     const response = await httpInstance({
       url: '/post/postPass',
       method: 'POST',
@@ -42,6 +41,74 @@ export const postRefund=async(postId)=>{
       method: 'POST',
       data:{
         postId:postId
+      }
+    })
+    if(response.status!==200){
+      console.log('未知错误')
+    }
+  }catch(error){
+    console.log(error)
+  }
+}
+
+export const getUserComplainInfo=async()=>{
+  try{
+    const response = await httpInstance({
+      url: '/report/userComplainInfo',
+      method: 'GET'
+    })
+    if(response.status===200){
+      return response.data
+    }
+    else{
+      console.log('未知错误')
+    }
+  }catch(error){
+    console.log(error)
+  }
+}
+
+export const userComplainProcess=async(reportId)=>{
+  try{
+    const response = await httpInstance({
+      url: '/report/userComplainProcess',
+      method: 'POST',
+      data:{
+        reportId:reportId
+      }
+    })
+    if(response.status!==200){
+      console.log('未知错误')
+    }
+  }catch(error){
+    console.log(error)
+  }
+}
+
+export const getPostComplainInfo=async()=>{
+  try{
+    const response = await httpInstance({
+      url: '/report/postComplainInfo',
+      method: 'GET'
+    })
+    if(response.status===200){
+      return response.data
+    }
+    else{
+      console.log('未知错误')
+    }
+  }catch(error){
+    console.log(error)
+  }
+}
+
+export const postComplainProcess=async(reportId)=>{
+  try{
+    const response = await httpInstance({
+      url: '/report/postComplainProcess',
+      method: 'POST',
+      data:{
+        reportId:reportId
       }
     })
     if(response.status!==200){
