@@ -118,3 +118,37 @@ export const postComplainProcess=async(reportId)=>{
     console.log(error)
   }
 }
+
+export const getFeedbackInfo=async()=>{
+  try{
+    const response = await httpInstance({
+      url: '/feedback/feedbackInfo',
+      method: 'GET'
+    })
+    if(response.status===200){
+      return response.data
+    }
+    else{
+      console.log('未知错误')
+    }
+  }catch(error){
+    console.log(error)
+  }
+}
+
+export const feedbackProcess=async(feedbackId)=>{
+  try{
+    const response = await httpInstance({
+      url: '/feedback/feedbackProcess',
+      method: 'POST',
+      data:{
+        feedbackId:feedbackId
+      }
+    })
+    if(response.status!==200){
+      console.log('未知错误')
+    }
+  }catch(error){
+    console.log(error)
+  }
+}

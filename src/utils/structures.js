@@ -22,7 +22,7 @@ export class UserComplainInfo {
   }
 }
 
-export class  PostComplainInfo {
+export class PostComplainInfo {
   constructor(reportId, reportReason, reporterId, reporterName, reportedPostId, postTitle, reportTime) {
     this.reportId=reportId
     this.reportReason=reportReason
@@ -31,5 +31,15 @@ export class  PostComplainInfo {
     this.reportedPostId=reportedPostId
     this.postTitle=postTitle
     this.reportTime=reportTime
+  }
+}
+
+export class FeedbackInfo {
+  constructor(feedbackId, feedbackContent, feedbackUserId, feedbackUserName, feedbackTime){
+    this.feedbackId=feedbackId
+    this.feedbackContent=feedbackContent
+    this.feedbackUserId=feedbackUserId
+    this.feedbackUserName=feedbackUserName
+    this.feedbackTime=feedbackTime
   }
 }
