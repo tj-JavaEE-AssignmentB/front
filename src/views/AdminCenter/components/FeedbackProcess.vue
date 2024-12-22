@@ -3,40 +3,40 @@
     <div class="spinner" v-if="isLoading"></div>
     <div class="componentlist" v-else>
       <div class="empty" v-if="isEmpty">无</div>
-      <div v-for="(item, index) in postComplainInfos" :key="item.reportId" class="table" v-else>
-        <OnePostComplainIntro :onePostComplainInfo="item" :num="index" @delete="deletePostComplain" />
+      <div v-for="(item, index) in feedbackInfos" :key="item.feedbackId" class="table" v-else>
+        <OneFeedbackIntro :oneFeedbackInfo="item" :num="index" @delete="deleteFeedback" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { PostComplainInfo } from '@/utils/structures';
+import { FeedbackInfo } from '@/utils/structures';
 import { ref, onMounted } from 'vue'
-import OnePostComplainIntro from './OnePostComplainIntro.vue';
-import { getPostComplainInfo } from '@/apis/admin';
+import OneFeedbackIntro from './OneFeedbackIntro.vue';
+import { getFeedbackInfo } from '@/apis/admin';
 
 let isLoading=ref(true)
 let isEmpty=ref(false)
-let postComplainInfos=ref([])
+let feedbackInfos=ref([])
 
-const deletePostComplain = (index) => {
-  postComplainInfos.value.splice(index, 1)
-  if(postComplainInfos.value.length==0){
+const deleteFeedback = (index) => {
+  feedbackInfos.value.splice(index, 1)
+  if(feedbackInfos.value.length==0){
         isEmpty.value=true;
   }
 }
 
 onMounted(async () => {
-  let getPostComplainInfos=await getPostComplainInfo()
-  if(getPostComplainInfos!=null){
-    for(let oneGetInfo of getPostComplainInfos){
-      let oneInfo=new PostComplainInfo(oneGetInfo.reportId,oneGetInfo.reportReason,oneGetInfo.reporterId,oneGetInfo.reporterName,oneGetInfo.reportedPostId,oneGetInfo.postTitle,oneGetInfo.reportTime)
-      postComplainInfos.value.push(oneInfo)
+  let getFeedbackInfos=await getFeedbackInfo()
+  if(getFeedbackInfos!=null){
+    for(let oneGetInfo of getFeedbackInfos){
+      let oneInfo=new FeedbackInfo(oneGetInfo.feedbackId, oneGetInfo.feedbackContent, oneGetInfo.feedbackUserId, oneGetInfo.feedbackUserName, oneGetInfo.feedbackTime)
+      feedbackInfos.value.push(oneInfo)
     }
   }
   isLoading.value=false
-  if(postComplainInfos.value.length==0){
+  if(feedbackInfos.value.length==0){
     isEmpty.value=true;
   }
 })

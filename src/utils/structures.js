@@ -9,3 +9,37 @@ export class AuditPostInfo {
     this.authorName=authorName
   }
 }
+
+export class UserComplainInfo {
+  constructor(reportId, reportReason, reporterId, reporterName, reportedUserId, reportedUserName, reportTime) {
+    this.reportId=reportId
+    this.reportReason=reportReason
+    this.reporterId=reporterId
+    this.reporterName=reporterName
+    this.reportedUserId=reportedUserId
+    this.reportedUserName=reportedUserName
+    this.reportTime=reportTime
+  }
+}
+
+export class PostComplainInfo {
+  constructor(reportId, reportReason, reporterId, reporterName, reportedPostId, postTitle, reportTime) {
+    this.reportId=reportId
+    this.reportReason=reportReason
+    this.reporterId=reporterId
+    this.reporterName=reporterName
+    this.reportedPostId=reportedPostId
+    this.postTitle=postTitle
+    this.reportTime=reportTime
+  }
+}
+
+export class FeedbackInfo {
+  constructor(feedbackId, feedbackContent, feedbackUserId, feedbackUserName, feedbackTime){
+    this.feedbackId=feedbackId
+    this.feedbackContent=feedbackContent
+    this.feedbackUserId=feedbackUserId
+    this.feedbackUserName=feedbackUserName
+    this.feedbackTime=feedbackTime
+  }
+}
