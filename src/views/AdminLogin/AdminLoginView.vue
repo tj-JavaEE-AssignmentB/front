@@ -11,10 +11,12 @@
         <div class="inputf">
           <input v-model="adminlogin.account" type="text" placeholder="账号"/>
           <span class="label">账号</span>
+          <div v-if="errors.loginAccount" class="error-message">{{ errors.loginAccount }}</div>
         </div>
         <div class="inputf">
           <input v-model="adminlogin.password" type="text" placeholder="密码"/>
           <span class="label">密码</span>
+          <div v-if="errors.loginPassword" class="error-message">{{ errors.loginPassword }}</div>
         </div>
         <button @click="login" class="button1">登录</button>
       </div>
@@ -28,10 +30,12 @@
         <div class="inputf">
           <input v-model="adminregister.account" type="text" placeholder="账号"/>
           <span class="label">账号</span>
+          <div v-if="errors.registerAccount" class="error-message">{{ errors.registerAccount }}</div>
         </div>
         <div class="inputf">
           <input v-model="adminregister.password" type="text" placeholder="密码"/>
           <span class="label">密码</span>
+          <div v-if="errors.registerPassword" class="error-message">{{ errors.registerPassword }}</div>
         </div>
         <button @click="register" class="button1">注册</button>
       </div>
@@ -64,6 +68,7 @@ import { useRouter } from 'vue-router';  // 导入 useRouter
 import {loginadmin} from '@/apis/login';  // 导入封装的 login API
 import {registeradmin} from "@/apis/register";
 
+
 import {ref} from "vue"
 
 const active = ref(1)
@@ -80,38 +85,69 @@ const adminregister = reactive({
   passwword:''
 })
 
-function login(){
-  console.log("管理员输入信息为",adminlogin);
-  loginadmin(adminlogin).then((response)=>{
-    console.log("获取信息为",response);
-    if(response.data.code===1){
-      console.log("登录成功");
-      localStorage.setItem("token",response.data.data);
-      router.push("/usercenter");
-    }else{
-      console.log("登录失败");
-    }
+const errors = reactive({
+  loginAccount: '',
+  loginPassword: '',
+  registerAccount: '',
+  registerPassword: ''
+});
 
-  }).catch(error =>{
-    console.log("登录出错",error);
-  })
+// 验证登录表单
+function validateLoginForm() {
+  errors.loginAccount = adminlogin.account ? '' : '账号不能为空';
+  errors.loginPassword = adminlogin.password ? '' : '密码不能为空';
+  return !errors.loginAccount && !errors.loginPassword;
+}
+
+// 验证注册表单
+function validateRegisterForm() {
+  errors.registerAccount = adminregister.account ? '' : '账号不能为空';
+  errors.registerPassword = adminregister.password ? '' : '密码不能为空';
+  return !errors.registerAccount && !errors.registerPassword;
+}
+
+
+function login(){
+  if (validateLoginForm()){
+    console.log("管理员输入信息为",adminlogin);
+    loginadmin(adminlogin).then((response)=>{
+      console.log("获取信息为",response);
+      if(response.data.code===1){
+        console.log("登录成功");
+        localStorage.setItem("token",response.data.data);
+        router.push("/usercenter");
+      }else{
+        console.log("登录失败");
+        alert("账号或密码错误");
+      }
+
+    }).catch(error =>{
+      console.log("登录出错",error);
+    })
+  }
+
 }
 
 function register(){
-  console.log("管理员输入信息为",adminregister);
-  registeradmin(adminregister).then((response)=>{
-    console.log("获取信息为",response);
-    if(response.data.code===1){
-      console.log("注册成功");
-      localStorage.setItem("token",response.data.data);
-      router.push("/usercenter");
-    }else{
-      console.log("注册失败");
-    }
-  }).catch(error =>{
-    console.log("注册出错",error);
-  })
+  if (validateRegisterForm()){
+    console.log("管理员输入信息为",adminregister);
+    registeradmin(adminregister).then((response)=>{
+      console.log("获取信息为",response);
+      if(response.data.code===1){
+        console.log("注册成功");
+        localStorage.setItem("token",response.data.data);
+        router.push("/usercenter");
+      }else{
+        console.log("注册失败");
+        alert("注册失败")
+      }
+    }).catch(error =>{
+      console.log("注册出错",error);
+    })
+  }
+
 }
+
 
 </script>
 
@@ -289,4 +325,11 @@ function register(){
   }
 
 }
+
+.error-message {
+  color: red;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
 </style>

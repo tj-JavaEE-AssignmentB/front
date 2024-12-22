@@ -11,10 +11,12 @@
           <div class="inputf">
             <input v-model="userlogin.account" type="text" placeholder="账号"/>
             <span class="label">账号</span>
+            <div v-if="errors.loginAccount" class="error-message">{{ errors.loginAccount }}</div>
           </div>
           <div class="inputf">
             <input v-model="userlogin.password" type="text" placeholder="密码"/>
             <span class="label">密码</span>
+            <div v-if="errors.loginPassword" class="error-message">{{ errors.loginPassword }}</div>
           </div>
           <button @click="login" class="button1">登录</button>
         </div>
@@ -28,22 +30,27 @@
           <div class="inputf">
             <input v-model="userregister.nickname" type="text" placeholder="用户名"/>
             <span class="label">用户名</span>
+            <div v-if="errors.registerNickname" class="error-message">{{ errors.registerNickname }}</div>
           </div>
           <div class="inputf">
             <input v-model="userregister.account" type="text" placeholder="账号"/>
             <span class="label">账号</span>
+            <div v-if="errors.registerAccount" class="error-message">{{ errors.registerAccount }}</div>
           </div>
           <div class="inputf">
-            <input v-model="userregister.passwword" type="text" placeholder="密码"/>
+            <input v-model="userregister.password" type="text" placeholder="密码"/>
             <span class="label">密码</span>
+            <div v-if="errors.registerPassword" class="error-message">{{ errors.registerPassword }}</div>
           </div>
           <div class="inputf">
             <input v-model="userregister.email" type="text" placeholder="邮箱"/>
             <span class="label">邮箱</span>
+            <div v-if="errors.registerEmail" class="error-message">{{ errors.registerEmail }}</div>
           </div>
           <div class="inputf">
             <input v-model="userregister.avatarUrl" type="text" placeholder="头像url"/>
             <span class="label">头像</span>
+            <div v-if="errors.registerAvatarUrl" class="error-message">{{ errors.registerAvatarUrl }}</div>
           </div>
           <button @click="register" class="button1">注册</button>
         </div>
@@ -89,42 +96,77 @@ const userlogin = reactive({
 const userregister = reactive({
   nickname:'',
   account:'',
-  passwword:'',
+  password:'',
   email:'',
   avatarUrl:''
 })
 
-function login(){
-  console.log("用户输入信息为",userlogin);
-  loginuser(userlogin).then((response)=>{
-    console.log("获取信息为",response);
-    if(response.data.code===1){
-      console.log("登录成功");
-      localStorage.setItem("token",response.data.data);
-      router.push("/usercenter");
-    }else{
-      console.log("登录失败");
-    }
+const errors = reactive({
+  loginAccount: '',
+  loginPassword: '',
+  registerNickname: '',
+  registerAccount: '',
+  registerPassword: '',
+  registerEmail:'',
+  registerAvatarUrl:''
+})
 
-  }).catch(error =>{
-    console.log("登录出错",error);
-  })
+// 验证登录表单
+function validateLoginForm() {
+  errors.loginAccount = userlogin.account ? '' : '账号不能为空';
+  errors.loginPassword = userlogin.password ? '' : '密码不能为空';
+  return !errors.loginAccount && !errors.loginPassword;
+}
+
+// 验证注册表单
+function validateRegisterForm() {
+  errors.registerAccount = userregister.account ? '' : '账号不能为空';
+  errors.registerPassword = userregister.password ? '' : '密码不能为空';
+  errors.registerNickname = userregister.nickname ? '' : '昵称不能为空';
+  errors.registerEmail= userregister.email ? '' : '邮箱不能为空';
+  errors.registerAvatarUrl=userregister.avatarUrl? '':'头像不能为空';
+  return !errors.registerAccount && !errors.registerPassword&&!errors.regoisterEmail&&!errors.registerAvatarUrl&&!errors.registerNickname;
+}
+
+function login(){
+  if (validateLoginForm()){
+    console.log("用户输入信息为",userlogin);
+    loginuser(userlogin).then((response)=>{
+      console.log("获取信息为",response);
+      if(response.data.code===1){
+        console.log("登录成功");
+        localStorage.setItem("token",response.data.data);
+        router.push("/usercenter");
+      }else{
+        alert("账号或密码错误");
+        console.log("登录失败");
+      }
+
+    }).catch(error =>{
+      console.log("登录出错",error);
+    })
+  }
+
 }
 
 function register(){
-  console.log("用户输入信息为",userregister);
-  registeruser(userregister).then((response)=>{
-    console.log("获取信息为",response);
-    if(response.data.code===1){
-      console.log("注册成功");
-      localStorage.setItem("token",response.data.data);
-      router.push("/usercenter");
-    }else{
-      console.log("注册失败");
-    }
-  }).catch(error =>{
-    console.log("注册出错",error);
-  })
+  if (validateRegisterForm()){
+    console.log("用户输入信息为",userregister);
+    registeruser(userregister).then((response)=>{
+      console.log("获取信息为",response);
+      if(response.data.code===1){
+        console.log("注册成功");
+        localStorage.setItem("token",response.data.data);
+        router.push("/usercenter");
+      }else{
+        console.log("注册失败");
+        alert("注册失败")
+      }
+    }).catch(error =>{
+      console.log("注册出错",error);
+    })
+  }
+
 }
 
 
@@ -304,4 +346,11 @@ function register(){
   }
 
 }
+
+.error-message {
+  color: red;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
 </style>
