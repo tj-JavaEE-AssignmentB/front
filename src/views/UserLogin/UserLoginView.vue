@@ -47,11 +47,7 @@
             <span class="label">邮箱</span>
             <div v-if="errors.registerEmail" class="error-message">{{ errors.registerEmail }}</div>
           </div>
-          <div class="inputf">
-            <input v-model="userregister.avatarUrl" type="text" placeholder="头像url"/>
-            <span class="label">头像</span>
-            <div v-if="errors.registerAvatarUrl" class="error-message">{{ errors.registerAvatarUrl }}</div>
-          </div>
+
           <button @click="register" class="button1">注册</button>
         </div>
         <div :class="active ===1?'card':'card active'">
@@ -108,7 +104,6 @@ const errors = reactive({
   registerAccount: '',
   registerPassword: '',
   registerEmail:'',
-  registerAvatarUrl:''
 })
 
 // 验证登录表单
@@ -124,8 +119,7 @@ function validateRegisterForm() {
   errors.registerPassword = userregister.password ? '' : '密码不能为空';
   errors.registerNickname = userregister.nickname ? '' : '昵称不能为空';
   errors.registerEmail= userregister.email ? '' : '邮箱不能为空';
-  errors.registerAvatarUrl=userregister.avatarUrl? '':'头像不能为空';
-  return !errors.registerAccount && !errors.registerPassword&&!errors.regoisterEmail&&!errors.registerAvatarUrl&&!errors.registerNickname;
+  return !errors.registerAccount && !errors.registerPassword&&!errors.registerEmail&&!errors.registerNickname;
 }
 
 function login(){
