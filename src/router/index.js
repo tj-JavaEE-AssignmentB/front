@@ -8,6 +8,7 @@ import UserCenterView from '@/views/UserCenter/UserCenterView.vue';
 import UserHomepageView from '@/views/UserHomepage/UserHomepageView.vue';
 import UserLoginView from '@/views/UserLogin/UserLoginView.vue';
 import { createRouter, createWebHistory } from 'vue-router';
+import SearchView from '@/views/SearchView/SearchView.vue';
 
 //页面路由配置
 const router = createRouter({
@@ -33,6 +34,11 @@ const router = createRouter({
           path: 'post/:id',
           name: 'post',
           component: PostView
+        },
+        {
+          path: 'search/:title',
+          name: 'search',
+          component: SearchView
         }
       ]
     },
@@ -60,6 +66,26 @@ const router = createRouter({
       path: '/admincenter',
       name: 'admincenter',
       component: AdminCenterView,
+    },
+    {
+      path: '/Home',
+      name: 'Home',
+      component: HomeView
+    },
+    {
+      path: '/post/:id',
+      name: 'post',
+      component: PostView
+    },
+    {
+      path: '/category/:id',
+      name: 'category',
+      component: CategoryView
+    },
+    {
+      path: '/search/:keyword',
+      name: 'Search',
+      component: SearchView
     }
   ]
 });
