@@ -43,3 +43,11 @@ export class FeedbackInfo {
     this.feedbackTime=feedbackTime
   }
 }
+
+export class CategoryAddInfo {
+  constructor(categoryName, description, image){
+    this.categoryName=categoryName
+    this.description=description
+    this.image=image
+  }
+}
