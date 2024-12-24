@@ -17,7 +17,7 @@
 
     <div class="posts-list">
       <div v-if="!posts.length">暂无帖子</div>
-      
+
       <div v-for="post in posts" :key="post.id" class="post-card" @click="goToPost(post.id)">
         <h3>{{ post.title }}</h3>
         <p class="post-preview">{{ post.content?.substring(0, 100) || '' }}...</p>
@@ -32,6 +32,7 @@
     </div>
 
     <button @click="goToUserCenter">前往个人中心</button>
+    <button @click="goToUserHomePage">前往个人主页</button>
 
   </div>
 </template>
@@ -53,6 +54,12 @@ export default {
         name: 'usercenter',
         params: { userid: this.currentUserId }
       });
+    },
+    goToUserHomePage() {
+      this.$router.push({
+        name: 'userhomepage',
+        params: { userid: this.currentUserId }
+      });
     }
   },
   name: 'HomeView',
@@ -72,7 +79,7 @@ export default {
 
         categories.value = categoriesRes.data
         posts.value = postsRes.data.data
-        
+
         console.log('Posts loaded:', posts.value)
       } catch (error) {
         console.error('获取数据失败:', error)

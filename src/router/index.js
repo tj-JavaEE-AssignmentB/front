@@ -47,9 +47,19 @@ const router = createRouter({
       path: '/usercenter/:userid',
       name: 'usercenter',
       component: UserCenterView,
+      beforeEnter: async (to, from, next) => {
+        const role = await identityGet()
+        if (role.data["identity"] !== 'user') {
+          console.log(role)
+          console.log(role.identity)
+          next('/userlogin')
+        } else {
+          next()
+        }
+      }
     },
     {
-      path: '/userhomepage/:id',
+      path: '/userhomepage/:userid',
       name: 'userhomepage',
       component: UserHomepageView,
     },

@@ -5,6 +5,9 @@
     <div class="content-wrapper">
       <div class="left-panel">
         <div class="user-info-container">
+          <div class="profile-background">
+            <img src="../../assets/pictures/UserCenterView/puq.jpg" alt="用户背景图" class="background-image" />
+          </div>
           <div class="avatar-container" @click="openAvatarSelection">
             <img :src="user. avatarUrl" alt="用户头像" class="avatar" />
             <div class="avatar-overlay">更换头像</div>
@@ -35,13 +38,7 @@
                 <p v-if="emailError" class="error-message">{{ emailError }}</p> <!-- 报错信息显示在输入框下方 -->
               </div>
             </div>
-            <div class="form-group">
-              <label for="bio">简&nbsp;介：</label>
-              <div class="editable-field-container">
-                <span v-if="!editing">{{ user.account }}</span>
-                <textarea v-if="editing" id="bio" v-model="userTemp.account" class="fixed-input"></textarea>
-              </div>
-            </div>
+
           </div>
           <!-- 编辑个人信息按钮 -->
           <div class="edit-button-container">
@@ -113,7 +110,7 @@
         <div v-if="selectedText === '我的收藏'" class="selectedoption">
 
           <!-- 收藏列表 -->
-          <div v-for="favorite in favoritePosts" :key="favorite.postId" class="post"
+          <div v-for="favorite in favoritePosts" :key="favorite?.postId" class="post"
                @click="openFavoriteDialog(favorite)">
             <h3 class="post-title">{{ favorite.postTitle }}</h3>
             <p class="post-content">{{ favorite.postContent }}</p>
@@ -128,14 +125,10 @@
           <div v-for="comment in userComments" :key="comment.commentId" class="post">
             <h3 class="comment-title">{{ comment.commentContent }}</h3>
 
-
             <!-- 评论底部信息：评论者和时间在左下角，帖子标题在右下角 -->
             <div class="comment-meta">
               <div class="comment-left">
                 <span>{{ comment.postTitle }}</span>
-<!--                <span>{{ comment.username }}</span>-->
-<!--                <span>&nbsp;|&nbsp;</span>-->
-
               </div>
               <div class="comment-right">
 
@@ -151,31 +144,29 @@
         <div v-if="selectedText === '我的关注'" class="selectedoption">
 
           <!-- 关注列表 -->
-          <div v-for="favorite in userFavors" :key="favorite.articleId" class="post"
-               @click="openFavoriteDialog(favorite)">
-            <h3 class="post-title">{{ favorite.title }}</h3>
-            <p class="post-content">{{ favorite.content }}</p>
+          <div v-for="follow in  userFollows" :key="follow.account" class="post"
+               @click="openFavoriteDialog(follow)">
+            <h3 class="post-title">{{ follow.nickname }}</h3>
+
 <!--            <p class="post-meta">发布日期: {{ favorite.publishedDate }}</p>-->
             <!-- 改为取消关注按钮 -->
-            <button class="cancelFavorite-button" @click.stop="confirmCancelFavorite(favorite)">取消关注</button>
+            <button class="cancelFavorite-button" @click.stop="confirmCancelFollow(follow)">取消关注</button>
           </div>
         </div>
 
         <!-- 板块列表 -->
-        <div v-if="selectedText === '我的关注'" class="selectedoption">
+        <div v-if="selectedText === '我感兴趣'" class="selectedoption">
 
           <!-- 板块列表 -->
-          <div v-for="favorite in userFavors" :key="favorite.articleId" class="post"
-               @click="openFavoriteDialog(favorite)">
-            <h3 class="post-title">{{ favorite.title }}</h3>
-            <p class="post-content">{{ favorite.content }}</p>
+          <div v-for="Category in userCategories" :key="Category.categoryId" class="post"
+               @click="openFavoriteDialog(Category)">
+            <h3 class="post-title">{{ Category.categoryName }}</h3>
+            <p class="post-content">{{ Category.categoryDescription }}</p>
             <!--            <p class="post-meta">发布日期: {{ favorite.publishedDate }}</p>-->
             <!-- 改为取消关注按钮 -->
-            <button class="cancelFavorite-button" @click.stop="confirmCancelFavorite(favorite)">取消关注</button>
+            <button class="cancelFavorite-button" @click.stop="confirmCancelFavorite(Category)">取消关注</button>
           </div>
         </div>
-
-
 
       </div>
 
@@ -207,7 +198,7 @@
       <div v-if="showConfirmDialog" class="confirm-dialog">
         <div class="confirm-dialog-content">
           <p>确定要删除该帖子吗？</p>
-          <button @click="deletepost(selectedPost)">确认</button>
+          <button @click="deletePost(selectedPost)">确认</button>
           <button @click="cancelDelete">取消</button>
         </div>
       </div>
@@ -227,6 +218,15 @@
           <p>确定要删除该评论吗？</p>
           <button @click="confirmComment(selectedComment)">确认</button>
           <button @click="cancelCommentDialog">取消</button>
+        </div>
+      </div>
+
+      <!-- 取消关注弹框 -->
+      <div v-if="showConfirmFollowDialog" class="confirm-dialog">
+        <div class="confirm-dialog-content">
+          <p>确定要取消关注用户吗？</p>
+          <button @click="confirmUnfollow(selectedFollow)">确认</button>
+          <button @click="cancelFollowDialog">取消</button>
         </div>
       </div>
 
@@ -286,9 +286,11 @@
   // import { mapGetters, mapActions } from 'vuex';
   import { getUserInfo } from '@/apis/userapi';
   import { updateUserInfo } from '@/apis/userapi';
-  import { fetchFavoritePostsByUser } from '@/apis/post';
-  import { fetchPostsByAuthor } from '@/apis/post';
-  import { fetchCommentsByUser } from '@/apis/post';
+  import { fetchPreferredCategoriesByUserId } from '@/apis/userapi';
+  import { fetchFavoritePostsByUser } from '@/apis/userapi';
+  import { fetchPostsByAuthor } from '@/apis/userapi';
+  import { fetchCommentsByUser } from '@/apis/userapi';
+  import { fetchFollowsByUser  } from '@/apis/userapi';
   import request from '@/utils/request';
 
   export default {
@@ -296,7 +298,9 @@
       this.fetchUserInfo();
       this.fetchPostsByAuthor();
       this.fetchFavoritePosts();
-      this.fetchCommentsByUser()
+      this.fetchCommentsByUser();
+      this.fetchFollowsByUser();
+      this.fetchPreferredCategories()
     },
   computed: {
   // ...mapGetters({
@@ -307,6 +311,10 @@
   //   getPosts: 'getPosts',
   //   userComment: 'commentsByUser',
   // }),
+    filteredUserFavors() {
+      // 如果有额外的过滤逻辑可以在这里实现
+      return this.userFavors;
+    },
     userId() {
       return this.$route.params.userid;
     },
@@ -328,6 +336,8 @@
 
     ],
     userComments:[],
+    userFollows: [], // 存储用户关注列表
+    userCategories:[],
 
 
   showChangePasswordDialog: false, // 控制弹出框显示
@@ -349,6 +359,9 @@
 
   selectedComment: null, // 当前选择的评论
   showConfirmCommentDialog: false, // 控制评论删除确认弹框
+
+    selectedFollow: null, // 当前选择的评论
+    showConfirmFollowDialog: false, // 控制评论删除确认弹框
 
   userTemp: {},
   editing: false,
@@ -439,6 +452,35 @@
       }
     },
 
+    async fetchFollowsByUser() {
+
+      try {
+        this.loading = true;
+        const response = await fetchFollowsByUser(this.userId); // 假设这是你的API调用
+        console.log(response);
+        this.userFollows = response.data; // 将获取到的关注列表保存到组件的状态中
+      } catch (error) {
+        console.error('获取关注信息失败:', error);
+        this.$message.error('获取关注信息失败，请重试'); // 使用消息提示框显示错误信息
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchPreferredCategories() {
+      try {
+        this.loading = true;
+        const response = await fetchPreferredCategoriesByUserId(this.userId);
+        console.log(response);
+        this.userCategories = response.data; // 假设响应格式与获取帖子类似，具有data属性
+      } catch (error) {
+        console.error('获取板块信息失败:', error);
+        this.$message.error('获取板块信息失败，请重试');
+      } finally {
+        this.loading = false;
+      }
+    },
+
     async saveUserInfo() {
       try {
         await updateUserInfo(this.userId, this.userInfo);
@@ -455,47 +497,6 @@
 
 
 
-  async fetchPostComments(articleId) {
-  try {
-  let response;
-  if (process.env.NODE_ENV === 'development') {
-  // 模拟数据（仅用于开发环境）
-  console.log('模拟获取帖子评论:', articleId);
-  response = await new Promise((resolve) =>
-  setTimeout(() => resolve([
-{ id: 1, content: '模拟评论1' },
-{ id: 2, content: '模拟评论2' }
-  ]), 1000));
-} else {
-  // 生产环境中实际调用API
-  response = await this.fetchApi('/api/comments/post/' + articleId); // 替换为实际的API路径
-}
-  this.postComment = response; // 将评论数据存储在组件中
-} catch (error) {
-  console.error('获取帖子评论失败:', error);
-}
-},
-
-  async getUserFavorites() {
-  try {
-  let result;
-  if (process.env.NODE_ENV === 'development') {
-  // 模拟数据（仅用于开发环境）
-  console.log('模拟加载收藏');
-  result = [
-{ id: 1, name: '模拟收藏1' },
-{ id: 2, name: '模拟收藏2' }
-  ];
-} else {
-  // 生产环境中实际调用API
-  result = await this.fetchApi('/api/favorites/user/' + this.currentUser.userId); // 替换为实际的API路径
-}
-  console.log('收藏加载成功:', result);
-  this.userFavors = result;
-} catch (error) {
-  console.error('加载收藏失败:', error);
-}
-},
   editUserInfo() {
   this.userTemp = { ...this.user };
   this.editing = true;
@@ -600,22 +601,7 @@
             this.loading = false;
           });
     },
-//   async updateUserAvatar() {
-//   try {
-//   await this.updateUserInfo({
-//   username: this.currentUser.username,
-//   email: this.currentUser.email,
-//   password: this.currentUser.password,
-//   languagePreference: this.currentUser.languagePreference,
-//   bio: this.currentUser.bio,
-//   avatar: this.selectedAvatar,
-//   gender: this.currentUser.gender
-// });
-// } catch (error) {
-//   console.error('更新头像失败:', error);
-//   alert('更新头像失败，请稍后再试。');
-// }
-// },
+
 
     goHome() {
       this.$router.push({ name: 'home' });
@@ -638,13 +624,33 @@
   this.showConfirmDialog = true; // 显示确认弹框
 },
   // 确认删除操作
-  deletepost(post) {
-  // 实际删除操作应通过API调用来删除帖子
-  this.deletePost(post.articleId);
-  this.userPosts = this.userPosts.filter(p => p.articleId !== post.articleId);
-  this.showConfirmDialog = false; // 关闭弹框
-  this.selectedPost = null; // 重置选择的帖子
-},
+    async deletePost(post) {
+      // 检查用户是否已登录
+
+      this.loading = true;
+
+      // 发起删除请求
+      request.delete(`/userCenter/delete/${post.postId}`)
+          .then(response => {
+            // 删除成功后的处理
+            this.$message.success('帖子删除成功');
+            console.log(response);
+
+            // 更新本地帖子列表
+            this.userPosts = this.userPosts.filter(p => p.postId !== post.postId);
+            this.showConfirmDialog = false; // 关闭弹框
+            this.selectedPost = null; // 重置选择的帖子
+          })
+          .catch(error => {
+            // 删除失败后的处理
+            console.error('删除帖子失败:', error);
+            this.$message.error('删除帖子失败，请稍后再试。');
+          })
+          .finally(() => {
+            // 请求完成后的处理
+            this.loading = false;
+          });
+    },
   // 取消删除操作
   cancelDelete() {
   this.showConfirmDialog = false; // 关闭弹框
@@ -726,40 +732,124 @@
   this.selectedFavorite = favorite;
   this.showConfirmFavoriteDialog = true;
 },
+    confirmCancelFollow(follow) {
+      this.selectedFollow = follow;
+      this.showConfirmFollowDialog = true;
+    },
 
-  // 取消收藏操作
-  cancelFavorite(favorite) {
-  console.log('favor:', favorite.favorId); // 调试信息
-  this.$store.dispatch('deleteFavorite', favorite.favorId);
-  //console.log('comment:', comment); // 调试信息
-  this.userFavors = this.userFavors.filter(p => p.favorId !== favorite.favorId);
-  this.showConfirmFavoriteDialog = false;
-  this.selectedFavorite = null;
-},
 
+    // 取消收藏操作
+
+    async cancelFavorite(favorite) {
+      this.loading = true;
+     const userId=this.userId;
+      try {
+        // 发起取消收藏请求
+        const response = await request.delete(`/userCenter/unfavorite/${userId}/${favorite.postId}`);
+
+        // 根据 HTTP 状态码判断是否成功
+        if (response.status >= 200 && response.status < 300) {
+          this.$message.success('取消收藏成功');
+          console.log('取消收藏响应:', response);
+
+          // 更新本地收藏列表
+          // 使用可选链操作符 (?.) 来安全地访问 this.userFavors，并提供默认值 []
+          this.userFavors = this.userFavors?.filter(f => f.postId !== favorite.postId) || [];
+
+          this.showConfirmFavoriteDialog = false; // 关闭弹框
+          this.selectedFavorite = null; // 重置选择的收藏项
+        } else {
+          throw new Error(`Unexpected status code: ${response.status}`);
+        }
+      } catch (error) {
+        // 取消收藏失败后的处理
+        console.error('取消收藏失败:', error);
+        this.$message.error('取消收藏失败，请稍后再试。');
+      } finally {
+        this.loading = false;
+      }
+    },
   // 关闭弹框
   cancelDialog() {
   this.showConfirmFavoriteDialog = false;
   this.selectedFavorite = null;
 },
-  confirmComment(comment) {
-  //确认删除函数，然后接入后端
-  this.$store.dispatch('deleteComment', comment.commentId);
-  console.log('comment:', comment); // 调试信息
-  this.userComments = this.userComments.filter(p => p.commentId !== comment.commentId);
-  this.showConfirmCommentDialog = false;
-  this.selectedComment = null;
-},
-  deleteComment(comment) {
-  this.selectedComment = comment;
-  this.showConfirmCommentDialog = true;
-},
+
+    // 确认删除函数，然后接入后端
+    async confirmComment(comment) {
+      // 检查用户是否已登录（根据你的应用逻辑实现）
+
+      this.loading = true;
+
+      try {
+        // 发起删除请求
+        await request.delete(`/userCenter/deleteComment/${comment.commentId}`);
+
+        // 删除成功后的处理
+        this.$message.success('评论删除成功');
+        console.log('Comment deleted successfully');
+
+        // 更新本地评论列表
+        this.userComments = this.userComments.filter(c => c.commentId !== comment.commentId);
+        this.showConfirmCommentDialog = false;
+        this.selectedComment = null;
+      } catch (error) {
+        // 删除失败后的处理
+        console.error('删除评论失败:', error);
+        this.$message.error('删除评论失败，请稍后再试。');
+      } finally {
+        // 请求完成后的处理
+        this.loading = false;
+      }
+    },
+    deleteComment(comment) {
+      this.selectedComment = comment;
+      this.showConfirmCommentDialog = true;
+    },
 
   // 关闭弹框
   cancelCommentDialog() {
   this.showConfirmCommentDialog = false;
   this.selectedComment = null;
 },
+    cancelFollowDialog() {
+      this.showFollowDialog = false;
+      this.selectedFollow = null;
+    },
+
+    async confirmUnfollow({ followUserId }) { // 使用解构赋值获取要取消关注的用户ID
+                                              // 检查用户是否已登录（根据你的应用逻辑实现）
+
+      this.loading = true;
+
+      try {
+        // 发起取消关注请求
+        await request.delete(`/userCenter/unfollow/${followUserId}?userId=${this.currentUser.userId}`);
+
+        // 取消关注成功后的处理
+        this.$message.success('取消关注成功');
+        console.log('Unfollowed user successfully');
+
+        // 更新本地关注列表（如果有的话）
+        this.userFollows = this.userFollows.filter(follow => follow.followUserId !== followUserId);
+        this.showConfirmUnfollowDialog = false;
+        this.selectedFollowUser = null;
+      } catch (error) {
+        // 取消关注失败后的处理
+        console.error('取消关注失败:', error);
+        this.$message.error('取消关注失败，请稍后再试。');
+      } finally {
+        // 请求完成后的处理
+        this.loading = false;
+      }
+    },
+    unfollowUser(user) {
+      this.selectedFollowUser = user;
+      this.showConfirmUnfollowDialog = true;
+    },
+
+
+
   //选择框
   toggleDropdown() {
   this.showDropdown = !this.showDropdown; // 切换下拉菜单的显示状态
@@ -773,20 +863,42 @@
 </script>
 
 <style>
+.user-info-container {
+  position: relative;
+  padding-top: 200px; /* 确保内容不会被背景图片遮挡 */
+  width: 100%; /* 确保容器宽度为父容器的100% */
+  box-sizing: border-box; /* 包含内边距和边框 */
+}
+
+.profile-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0; /* 让背景图片左右填充 */
+  height: 200px; /* 背景图片的高度 */
+  overflow: hidden;
+}
+
+.background-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .avatar-container {
   position: relative;
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-  cursor: pointer;
+  margin-top: -50px; /* 让头像浮在背景图片上 */
+  z-index: 1;
+  text-align: center;
 }
 
 .avatar {
+  border-radius: 50%;
   width: 100px;
   height: 100px;
-  border-radius: 50%;
   object-fit: cover;
-  transition: all 0.3s ease;
+  border: 4px solid white;
+  z-index: 8;
 }
 
 .avatar-overlay {

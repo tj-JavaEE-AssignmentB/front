@@ -1,126 +1,179 @@
 <template>
+
   <div class="container" v-if="currentUser">
+
     <div class="content-wrapper">
       <div class="left-panel">
-        <!-- 用户头像 -->
-        <div class="avatar-container" @click="openAvatarSelection">
-          <img :src="currentUser.avatar" alt="用户头像" class="avatar" />
-          <div class="avatar-overlay">更换头像</div>
-          <input type="file" ref="fileInput" @change="handleFileUpload" accept="image/*" style="display: none;" />
-        </div>
-        <!-- 用户信息 -->
-        <div class="user-info">
-          <div class="form-group">
-            <label>用户名：</label>
-            <span v-if="!editing">{{ currentUser.username }}</span>
-            <input v-else type="text" v-model="userTemp.username" @input="validateUsername" />
-            <p v-if="usernameError" class="error-message">{{ usernameError }}</p>
+        <div class="user-info-container">
+          <div class="profile-background">
+            <img src="../../assets/pictures/UserCenterView/puq.jpg" alt="用户背景图" class="background-image" />
           </div>
-          <div class="form-group">
-            <label>邮箱：</label>
-            <span v-if="!editing">{{ currentUser.email }}</span>
-            <input v-else type="email" v-model="userTemp.email" @input="validateEmail" />
-            <p v-if="emailError" class="error-message">{{ emailError }}</p>
+          <div class="avatar-container" @click="openAvatarSelection">
+            <img :src="user. avatarUrl" alt="用户头像" class="avatar" />
+            <div class="avatar-overlay">更换头像</div>
+            <!-- 隐藏的文件输入框 -->
+            <input type="file" ref="fileInput" @change="handleFileUpload" accept="image/*" style="display: none;" />
           </div>
-          <div class="form-group">
-            <label>简介：</label>
-            <span v-if="!editing">{{ currentUser.bio }}</span>
-            <textarea v-else v-model="userTemp.bio"></textarea>
-          </div>
-          <!-- 编辑按钮 -->
-          <div class="edit-btn">
-            <button v-if="!editing" @click="editUserInfo">编辑个人信息</button>
-            <div v-else>
-              <button @click="confirmEdit">确认</button>
-              <button @click="cancelEdit">取消</button>
+          <div class="user-details">
+            <!-- 用户信息表单部分 -->
+            <div class="form-group">
+              <label for="username">用户名：</label>
+              <div class="editable-field-container">
+                <span v-if="!editing">{{ user.nickname }}</span>
+                <!--                <span v-if="!editing">{{ userID }}</span>-->
+                <input v-if="editing" type="username" v-model="userTemp.nickname" @input="validateUsername"
+                       class="fixed-input" />
+                <!-- 错误信息显示在输入框下方 -->
+                <p v-if="usernameError" class="error-message">{{ usernameError }}</p> <!-- 报错信息显示在输入框下方 -->
+              </div>
             </div>
+
+            <div class="form-group">
+              <label for="email">邮&nbsp;箱：</label>
+              <div class="editable-field-container">
+                <span v-if="!editing">{{ user.email }}</span>
+                <input v-if="editing" type="email" v-model="userTemp.email" @input="validateEmail"
+                       class="fixed-input" />
+                <!-- 错误信息显示在输入框下方 -->
+                <p v-if="emailError" class="error-message">{{ emailError }}</p> <!-- 报错信息显示在输入框下方 -->
+              </div>
+            </div>
+
           </div>
-          <!-- 修改密码按钮 -->
-          <button @click="showChangePasswordDialog = true">修改账户密码</button>
-          <!-- 退出登录按钮 -->
-          <button @click="performLogout">退出登录</button>
+
+          <button class="follow-button" @click="toggleFollow" :disabled="following" :class="{ 'followed': following }">
+            {{ following ? '已关注' : '关注' }}
+          </button>
+
+          <button class="home-button" @click="goHome">返回主页</button>
         </div>
+
       </div>
+
+
       <div class="right-panel">
-        <!-- 选项卡 -->
-        <div class="tab-container">
-          <div class="tab-item" :class="{ active: selectedTab === 'posts' }" @click="selectedTab = 'posts'">我的帖子</div>
-          <div class="tab-item" :class="{ active: selectedTab === 'favorites' }" @click="selectedTab = 'favorites'">我的收藏</div>
-          <div class="tab-item" :class="{ active: selectedTab === 'comments' }" @click="selectedTab = 'comments'">我的评论</div>
-          <div class="tab-item" :class="{ active: selectedTab === 'follows' }" @click="selectedTab = 'follows'">我的关注</div>
-          <div class="tab-item" :class="{ active: selectedTab === 'interests' }" @click="selectedTab = 'interests'">兴趣板块</div>
+        <!-- 右侧框架的内容，例如其他信息 -->
+        <!-- 使用 v-for 遍历从后端获取的帖子列表 -->
+
+        <!-- 带三角形的文字选择栏 -->
+        <div class="dropdown-container">
+          <div class="dropdown-text" @click="toggleDropdown">
+            {{ selectedText }}
+            <span :class="{ 'triangle': true, 'triangle-rotate': showDropdown }">&#9662;</span>
+          </div>
+
+          <!-- 下拉菜单，点击三角形后显示 -->
+          <ul v-if="showDropdown" class="dropdown-menu">
+            <li @click="selectOption('帖子')">帖子</li>
+
+            <li @click="selectOption('关注')">关注</li>
+
+          </ul>
         </div>
-        <!-- 内容区域 -->
-        <div class="content-area">
-          <!-- 我的帖子 -->
-          <div v-if="selectedTab === 'posts'">
-            <div v-for="post in posts" :key="post.id" class="post-item">
-              <h3>{{ post.title }}</h3>
-              <p>{{ post.content }}</p>
-              <p>发布时间：{{ post.publishedDate }}</p>
-              <button @click="deletePost(post)">删除</button>
-            </div>
-          </div>
-          <!-- 我的收藏 -->
-          <div v-if="selectedTab === 'favorites'">
-            <div v-for="favorite in favorites" :key="favorite.id" class="post-item">
-              <h3>{{ favorite.title }}</h3>
-              <p>{{ favorite.content }}</p>
-              <p>发布时间：{{ favorite.publishedDate }}</p>
-              <button @click="cancelFavorite(favorite)">取消收藏</button>
-            </div>
-          </div>
-          <!-- 我的评论 -->
-          <div v-if="selectedTab === 'comments'">
-            <div v-for="comment in comments" :key="comment.id" class="comment-item">
-              <p>{{ comment.content }}</p>
-              <p>评论时间：{{ comment.createdAt }}</p>
-              <button @click="deleteComment(comment)">删除</button>
-            </div>
-          </div>
-          <!-- 我的关注 -->
-          <div v-if="selectedTab === 'follows'">
-            <div v-for="follow in follows" :key="follow.id" class="follow-item">
-              <p>{{ follow.username }}</p>
-              <button @click="cancelFollow(follow)">取消关注</button>
-            </div>
-          </div>
-          <!-- 兴趣板块 -->
-          <div v-if="selectedTab === 'interests'">
-            <div v-for="interest in interests" :key="interest.id" class="interest-item">
-              <p>{{ interest.name }}</p>
-              <button @click="unsubscribeInterest(interest)">取消订阅</button>
-            </div>
+
+        <!-- 分割线 -->
+        <hr class="divider">
+
+
+        <!-- 根据选择展示内容 -->
+        <div v-if="selectedText === '帖子'" class="selectedoption">
+
+
+          <!-- 帖子列表 -->
+          <div v-for="post in userPosts" :key="post?.postId" class="post" @click="openPostDialog(post)">
+            <h3 class="post-title">{{ post?.postTitle }}</h3>
+            <p class="post-content">{{ post?.postContent }}</p>
+            <p class="post-meta">
+              发布日期: {{ post?.publishTime }}
+              <!-- 如果需要显示文章类型，可以根据实际情况取消注释并调整逻辑 -->
+              <!-- <span v-if="post.article_type === 'announcement'"> | 类型: 公告</span>
+              <span v-else> | 类型: 文章</span> -->
+            </p>
+            <!-- 确保删除按钮使用 @click.stop 来防止冒泡 -->
+<!--            <button class="delete-button" @click.stop="confirmDelete(post)">删除</button>-->
           </div>
         </div>
+
+
+        <!-- 收藏列表 -->
+
+
+        <!-- 评论列表 -->
+
+
+        <!-- 关注列表 -->
+        <div v-if="selectedText === '关注'" class="selectedoption">
+
+          <!-- 关注列表 -->
+          <div v-for="follow in  userFollows" :key="follow.articleId" class="post"
+               @click="openFavoriteDialog(follow)">
+            <h3 class="post-title">{{ follow.nickname }}</h3>
+
+            <!--            <p class="post-meta">发布日期: {{ favorite.publishedDate }}</p>-->
+            <!-- 改为取消关注按钮 -->
+<!--            <button class="cancelFavorite-button" @click.stop="confirmCancelFavorite(follow)">取消关注</button>-->
+          </div>
+        </div>
+
+        <!-- 板块列表 -->
+
+
       </div>
+
+
+      <!-- 帖子详情弹框 -->
+
+
+      <!-- 删除确认弹框 -->
+
+
+      <!-- 取消收藏确认弹框 -->
+
+
+      <!-- 删除评论弹框 -->
+
+
+      <!-- 修改密码弹窗 -->
+
+      <!-- 头像选择弹出框 -->
+
+
     </div>
-    <!-- 投诉功能 -->
-    <div class="complaint-container">
-      <button @click="showComplaintDialog = true">投诉</button>
-      <!-- 投诉弹出框 -->
-      <div v-if="showComplaintDialog" class="complaint-dialog">
-        <h3>投诉</h3>
-        <textarea placeholder="请输入投诉内容"></textarea>
-        <button @click="submitComplaint">提交</button>
-        <button @click="cancelComplaint">取消</button>
-      </div>
-    </div>
+
+
+  </div>
+  <div v-else>
+    加载中...
   </div>
 </template>
 
-<script>
-export default {
 
+<script>
+// import { mapGetters, mapActions } from 'vuex';
+import { getUserInfo } from '@/apis/userapi';
+import { updateUserInfo } from '@/apis/userapi';
+import { fetchPreferredCategoriesByUserId } from '@/apis/userapi';
+import { fetchFavoritePostsByUser } from '@/apis/userapi';
+import { fetchPostsByAuthor } from '@/apis/userapi';
+import { fetchCommentsByUser } from '@/apis/userapi';
+import { fetchFollowsByUser  } from '@/apis/userapi';
+import request from '@/utils/request';
+
+export default {
+  created() {
+    this.fetchUserInfo();
+    this.fetchPostsByAuthor();
+    this.fetchFavoritePosts();
+    this.fetchCommentsByUser();
+    this.fetchFollowsByUser();
+    this.fetchPreferredCategories()
+  },
   computed: {
-    // ...mapGetters({
-    //   currentUser: 'getUserInfo', // 获取当前用户信息
-    //   isAdmin: 'isAdmin', // 检查是否为管理员
-    //   userAvatar: 'userAvatar', // 使用 getter 获取头像
-    //   isAuthenticated: 'isAuthenticated',// 检查认证状态
-    //   getPosts: 'getPosts',
-    //   userComment: 'commentsByUser',
-    // }),
+
+    userId() {
+      return this.$route.params.userid;
+    },
+
     posts() {
       return this.userPosts;
     },
@@ -130,21 +183,18 @@ export default {
   },
   data() {
     return {
-      userComments: [
-        { id: 1, content: '这是我的第一条评论', author: '张三', postId: 1 },
-        { id: 2, content: '这是我的第二条评论', author: '李四', postId: 2 },
 
-      ],
       userPosts: [
-        { id: 1, title: '我的第一个帖子', content: '这是第一个帖子的内容...', publishedDate: '2024-09-06' },
-        { id: 2, title: '我的第二个帖子', content: '这是第二个帖子的内容...', publishedDate: '2024-09-05' },
 
       ],
-      userFavors: [
-        { favorite_id: 1, article_id: 101, title: "收藏的帖子1", content: "这是第一个示例帖子的内容...", publishedDate: "2024-09-06" },
-        { favorite_id: 2, article_id: 102, title: "收藏的帖子2", content: "这是第二篇收藏的帖子内容...",publishedDate: "2024-09-05" }
+      favoritePosts: [
+
       ],
-      postComment: [], // 如果需要可以填充一些示例数据
+      userComments:[],
+      userFollows: [], // 存储用户关注列表
+      userCategories:[],
+
+
       showChangePasswordDialog: false, // 控制弹出框显示
       passwordError: '',
       oldPassword: '',
@@ -157,7 +207,7 @@ export default {
       selectedPost: null, // 当前选中的帖子
 
       showDropdown: false, // 控制下拉菜单的显示与隐藏
-      selectedText: '我的帖子', // 默认选择
+      selectedText: '帖子', // 默认选择
 
       showConfirmFavoriteDialog: false, // 控制收藏删除确认弹框
       selectedFavorite: null, // 当前选中的收藏
@@ -169,88 +219,135 @@ export default {
       editing: false,
       emailError: null,
       usernameError: null,
-
+      userID: null, // 确保这里定义了 userID
+      showAvatarSelection: false ,// 确保这里定义了 showAvatarSelection
       // 添加一个当前用户对象，用于模拟用户信息
-      currentUser: {
-        id: 1,
-        username: '张三',
-        email: 'zhangsan@example.com',
-        avatar: 'https://example.com/avatar.jpg'
-      }
+      user: {
+        userId: "",
+        nickname: "",
+        avatarUrl: "",
+        account: "",
+        password:"",
+        email: "",
+        status: ""
+      },
+      currentUser:{},
     };
   },
-  //comments: [/*从后端获取*/ ],  // 存储用户的评论信息
-  // mounted() {
-  //   // 模拟或实际获取用户帖子
-  //   this.fetchUserPosts(this.currentUser.userId)
-  //       .then(result => {
-  //         console.log('fetchUserPosts 返回的有效数据:', result); // 调试信息
-  //         this.userPosts = result; // 将异步获取的数据存储在组件的 data 中
-  //       })
-  //       .catch(error => {
-  //         console.error('获取帖子时出错:', error);
-  //       });
-  //
-  //   // 模拟或实际获取用户评论
-  //   if (process.env.NODE_ENV === 'development') {
-  //     // 模拟数据（仅用于开发环境）
-  //     console.log('模拟获取用户评论');
-  //     this.userComments = [
-  //       { id: 1, content: '模拟评论1' },
-  //       { id: 2, content: '模拟评论2' }
-  //     ];
-  //   } else {
-  //     // 生产环境中实际调用API
-  //     this.$store.dispatch('fetchCommentsByUser', this.currentUser.userId)
-  //         .then(result => {
-  //           console.log('获取到的评论:', result); // 调试信息
-  //           this.userComments = result; // 将返回的数据存储在本地
-  //         })
-  //         .catch(error => {
-  //           console.error('获取用户评论时出错:', error);
-  //         });
-  //   }
-  //
-  //   // 获取用户收藏
-  //   this.getUserFavorites();
-  //
-  //   // this.$store.dispatch('fetchFavoritesByUser', this.currentUser.userId)
-  //   //   .then(result => {
-  //   //     console.log('获取到的收藏:', result); // 调试信息
-  //   //     this.userFavors = result; // 将返回的数据存储在本地
-  //   //   })
-  //   //   .catch(error => {
-  //   //     console.error('获取用户收藏时出错:', error);
-  //   //   });
-  // },
+
   methods: {
-    // ...mapActions({
-    //   logout: 'logout',
-    //   setAvatar: 'setAvatar',
-    //   updateUserInfo: 'updateUserInfo',
-    //   fetchUserPosts: 'fetchUserPosts',
-    //   deletePost: 'deletePost',
-    // }),
-    async fetchUserPosts(userId) {
+
+
+    async fetchUserInfo() {
       try {
-        let response;
-        if (process.env.NODE_ENV === 'development') {
-          // 模拟数据（仅用于开发环境）
-          console.log('模拟获取帖子:', userId);
-          response = await new Promise((resolve) =>
-              setTimeout(() => resolve([
-                { id: 1, title: '模拟帖子1', content: '这是模拟内容1' },
-                { id: 2, title: '模拟帖子2', content: '这是模拟内容2' }
-              ]), 1000));
-        } else {
-          // 生产环境中实际调用API
-          response = await this.fetchApi('/api/posts/user/' + userId); // 替换为实际的API路径
-        }
-        this.userPosts = response; // 将帖子数据存储在组件的 data 中
+        this.loading = true;
+        const response = await getUserInfo(this.userId);
+        this.user = response.data;
       } catch (error) {
-        console.error('获取帖子时出错:', error);
+        console.error('获取用户信息失败:', error);
+        if (error.response && error.response.status === 404) {
+          this.$message.error('用户不存在');
+        } else {
+          this.$message.error('获取用户信息失败，请重试');
+        }
+      } finally {
+        this.loading = false;
       }
     },
+
+    async fetchPostsByAuthor() {
+      if (!this.userId) {
+        this.$router.push('/login');
+        return;
+      }
+
+      try {
+        this.loading = true;
+        const response = await fetchPostsByAuthor(this.userId);
+        console.log(response);
+        this.userPosts = response.data;
+      } catch (error) {
+        console.error('获取帖子信息失败:', error);
+        this.$message.error('获取帖子信息失败，请重试');
+      } finally {
+        this.loading = false;
+      }
+    },
+    async fetchFavoritePosts() {
+
+      try {
+        this.loading = true;
+        const response = await fetchFavoritePostsByUser(this.userId); // 假设这是你用来获取收藏帖子的API调用
+        console.log(response);
+        this.favoritePosts = response.data; // 将响应数据赋值给组件的数据属性
+      } catch (error) {
+        console.error('获取收藏帖子信息失败:', error);
+        this.$message.error('获取收藏帖子信息失败，请重试');
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchCommentsByUser() {
+
+      try {
+        this.loading = true;
+        // 调用后端API获取用户评论，假设我们有一个名为 fetchCommentsByUser 的API方法
+        const response = await fetchCommentsByUser(this.userId);
+        console.log(response);
+        this.userComments = response.data; // 假设返回的数据结构中，评论信息存储在data属性下
+      } catch (error) {
+        console.error('获取评论信息失败:', error);
+        this.$message.error('获取评论信息失败，请重试'); // 使用框架的消息提示功能显示错误信息给用户
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchFollowsByUser() {
+
+      try {
+        this.loading = true;
+        const response = await fetchFollowsByUser(this.userId); // 假设这是你的API调用
+        console.log(response);
+        this.userFollows = response.data; // 将获取到的关注列表保存到组件的状态中
+      } catch (error) {
+        console.error('获取关注信息失败:', error);
+        this.$message.error('获取关注信息失败，请重试'); // 使用消息提示框显示错误信息
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchPreferredCategories() {
+      try {
+        this.loading = true;
+        const response = await fetchPreferredCategoriesByUserId(this.userId);
+        console.log(response);
+        this.userCategories = response.data; // 假设响应格式与获取帖子类似，具有data属性
+      } catch (error) {
+        console.error('获取板块信息失败:', error);
+        this.$message.error('获取板块信息失败，请重试');
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async saveUserInfo() {
+      try {
+        await updateUserInfo(this.userId, this.userInfo);
+        // 更新成功，刷新数据或提示用户
+        this.$message.success('用户信息更新成功');
+      } catch (error) {
+        // 处理错误，提示用户
+        this.$message.error('更新用户信息失败，请稍后重试');
+      }
+    },
+
+
+
+
+
 
     async fetchPostComments(articleId) {
       try {
@@ -294,7 +391,7 @@ export default {
       }
     },
     editUserInfo() {
-      this.userTemp = { ...this.currentUser };
+      this.userTemp = { ...this.user };
       this.editing = true;
     },
     // 验证用户名是否为邮箱格式
@@ -321,13 +418,14 @@ export default {
         try {
           // 调用 Vuex 中的 action，发送更新的用户信息到后端
           await this.updateUserInfo({
-            username: this.userTemp.username,
-            email: this.userTemp.email,
+            userId: this.userTemp.userId,
+            nickname: this.userTemp.nickname,
+            avatarUrl: this.userTemp.avatarUrl,
+            account: this.userTemp.account,
             password: this.userTemp.password,
-            languagePreference: this.userTemp.languagePreference,
-            bio: this.userTemp.bio,
-            avatar: this.userTemp.avatar,
-            gender: this.userTemp.gender
+            email: this.userTemp.email,
+            status: this.userTemp.status,
+
           });
           this.editing = false;
         } catch (error) {
@@ -353,45 +451,71 @@ export default {
     openAvatarSelection() {
       this.$refs.fileInput.click(); // 点击头像区域时，打开文件选择器
     },
+
     handleFileUpload(event) {
       const file = event.target.files[0];
       if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          this.selectedAvatar = e.target.result; // 将Base64数据存储在selectedAvatar
-          this.updateUserAvatar(); // 调用方法更新头像
-        };
-        reader.readAsDataURL(file); // 将文件读取为Base64格式
-      }
-    },
-    async updateUserAvatar() {
-      try {
-        await this.updateUserInfo({
-          username: this.currentUser.username,
-          email: this.currentUser.email,
-          password: this.currentUser.password,
-          languagePreference: this.currentUser.languagePreference,
-          bio: this.currentUser.bio,
-          avatar: this.selectedAvatar,
-          gender: this.currentUser.gender
+        this.uploadAvatar(file).then(url => {
+          this.currentUser.avatarUrl = url; // 假设后端返回文件的URL
+          this.updateUserInfo(this.currentUser);
+        }).catch(error => {
+          console.error('上传头像失败:', error);
+          alert('上传头像失败，请稍后再试。');
         });
-      } catch (error) {
-        console.error('更新头像失败:', error);
-        alert('更新头像失败，请稍后再试。');
       }
     },
-    goToCatalog() {
-      this.$router.push('/catalog');
+    uploadAvatar(file) {
+      const formData = new FormData();
+      formData.append('file', file);
+      return request.post('/userCenter/avatar', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
     },
-    goToCommunity() {
-      this.$router.push('/community');
+    updateUserInfo(user) {
+      if (!this.userId) {
+        this.$router.push('/login');
+        return;
+      }
+
+      this.loading = true;
+
+      request.put(`/userCenter/update/${this.userId}`, user)
+          .then(response => {
+            this.$message.success('用户信息更新成功');
+            console.log(response);
+          })
+          .catch(error => {
+            console.error('更新用户信息失败:', error);
+            this.$message.error('更新用户信息失败，请稍后再试。');
+          })
+          .finally(() => {
+            this.loading = false;
+          });
     },
-    goToAdminPanel() {
-      this.$router.push('/adminpanel');
-    },
+//   async updateUserAvatar() {
+//   try {
+//   await this.updateUserInfo({
+//   username: this.currentUser.username,
+//   email: this.currentUser.email,
+//   password: this.currentUser.password,
+//   languagePreference: this.currentUser.languagePreference,
+//   bio: this.currentUser.bio,
+//   avatar: this.selectedAvatar,
+//   gender: this.currentUser.gender
+// });
+// } catch (error) {
+//   console.error('更新头像失败:', error);
+//   alert('更新头像失败，请稍后再试。');
+// }
+// },
+
     goHome() {
-      this.$router.push('/home');
+      this.$router.push({ name: 'home' });
     },
+
+
     performLogout() {
       this.logout();
       this.$router.push('/login'); // 跳转到登录页面
@@ -421,11 +545,11 @@ export default {
       this.selectedPost = null; // 重置选择的帖子
     },
     // 打开帖子详情弹框
-    openPostDialog(post) {
-      this.selectedPost = post;
+    openPostDialog(userPosts) {
+      this.selectedPost = userPosts;
       this.showPostDialog = true;
       // 根据选中的 post 的 articleId 获取该帖子的评论
-      this.fetchPostComments(post.articleId);
+      this.fetchPostComments(userPosts.postId);
     },
     // 关闭帖子详情弹框
     closePostDialog() {
@@ -542,157 +666,144 @@ export default {
 };
 </script>
 
-
 <style>
-
-/* 头像容器 */
 .avatar-container {
   position: relative;
+  display: flex;
+  justify-content: center;
   margin-bottom: 20px;
   cursor: pointer;
 }
+
 .avatar {
   width: 100px;
   height: 100px;
   border-radius: 50%;
   object-fit: cover;
+  transition: all 0.3s ease;
 }
+
 .avatar-overlay {
   position: absolute;
   top: 0;
   left: 0;
   width: 100px;
   height: 100px;
-  background-color: rgba(0, 0, 0, 0.5);
-  color: #fff;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   opacity: 0;
-  transition: opacity 0.3s;
+  transition: opacity 0.3s ease;
+  font-size: 14px;
+  text-align: center;
 }
+
+.avatar-container:hover .avatar {
+  filter: brightness(0.7);
+}
+
 .avatar-container:hover .avatar-overlay {
   opacity: 1;
 }
 
-/* 用户信息 */
-.user-info {
-  width: 100%;
-}
-.form-group {
-  margin-bottom: 15px;
-}
-.form-group label {
-  display: inline-block;
-  width: 80px;
-  font-weight: bold;
-}
-.form-group input, .form-group textarea {
-  width: calc(100% - 90px);
-  padding: 5px;
-  border: 1px solid #ccc;
-  border-radius: 3px;
-}
-.form-group textarea {
-  height: 100px;
-}
-.error-message {
-  color: red;
-  font-size: 12px;
-}
-.edit-btn button {
-  margin-top: 10px;
-}
-
-/* 右面板 */
-.right-panel {
-  margin-left: 20px;
-}
-.tab-container {
+.user-info-container {
   display: flex;
-  margin-bottom: 20px;
-}
-.tab-item {
-  padding: 10px 15px;
-  cursor: pointer;
-  border: 1px solid #ccc;
-  border-bottom: none;
-}
-.tab-item.active {
-  background-color: #409EFF;
-  color: #fff;
-}
-.content-area {
-  border: 1px solid #ccc;
-  padding: 20px;
-}
-.post-item, .comment-item, .follow-item, .interest-item {
-  margin-bottom: 20px;
-}
-.post-item h3 {
-  margin-top: 0;
-}
-.post-item p {
-  color: #666;
-}
-.post-item button, .comment-item button, .follow-item button, .interest-item button {
-  background-color: #409EFF;
-  color: #fff;
-  border: none;
-  padding: 5px 10px;
-  cursor: pointer;
-}
-
-/* 投诉功能 */
-.complaint-container {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-}
-.complaint-dialog {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 5px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-}
-.complaint-dialog textarea {
-  width: 100%;
-  height: 100px;
-  padding: 5px;
-  border: 1px solid #ccc;
-  border-radius: 3px;
-  margin-bottom: 10px;
-}
-.complaint-dialog button {
-  background-color: #409EFF;
-  color: #fff;
-  border: none;
-  padding: 5px 10px;
-  cursor: pointer;
-}
-.gender-group {
-  display: flex;
+  flex-direction: column;
   align-items: center;
 }
 
-.gender-label {
-  text-align: left;
+.container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
 }
 
-.gender-display {
-  flex: 2;
-  text-align: center;
-  /* 性别文本居中显示 */
+
+
+.content-wrapper {
+
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 80%;
+  height: 100%;
+  margin: 0 auto;
+  z-index: 2;
+  margin-top: 40px;
 }
 
-.gender-options {
+.content-wrapper::before {
+  content: '';
+  position: absolute;
+  top: -30px;
+  left: 0;
+  right: 0;
+  bottom: 0px;
+  background-image: url('../../assets/pictures/UserCenterView/background.png');
+  background-size: cover;
+  background-position: center;
+  z-index: -1; /* 确保背景在内容之下 */
+}
+.left-panel {
+  flex: 1;
+  display: flex;
   justify-content: center;
-  gap: 10px;
+  align-items: flex-start;
+  background-color: rgba(255, 255, 255, 0.7);
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  height: 100%;
+  z-index: 2;
+  margin-bottom: 20px;
+  /* 与底部之间的距离 */
+
 }
+
+.right-panel {
+  flex: 1;
+  display: flex;
+  background-color: rgba(211, 211, 211, 0.7);
+  flex-direction: column;
+  /* 将帖子垂直排列 */
+  align-items: flex-start;
+  justify-content: flex-start;
+  /* 让内容从顶部开始对齐 */
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  height: 100%;
+  /* 固定高度 */
+  margin-bottom: 20px;
+  z-index: 2;
+}
+
+.user-details {
+  width: 100%;
+  max-width: 400px;
+}
+
+.form-group {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  font-family: '宋体', 'ZhiMangXing-Regular', sans-serif;
+  font-size: 16px;
+  max-width: 290px;
+}
+
+.form-group label {
+  min-width: 80px;
+  /* 设置一个最小宽度确保标签在同一行 */
+  margin-right: 10px;
+  /* 标签和输入框之间的间距 */
+  text-align: right;
+}
+
 
 
 .editable-field-container {
@@ -776,13 +887,24 @@ textarea {
   /* 容器的宽度设置为按钮的总宽度加上间距 */
 }
 
+.home-button {
+  background-color: #28a745; /* 绿色按钮 */
+  color: white;
+  margin-top: 15px;
+  /* 让按钮靠下 */
+}
+
+.home-button:hover {
+  background-color: #218838; /* 悬停时颜色变深 */
+}
+
 
 .logout-button-container {
   display: flex;
   justify-content: center;
   margin-top: auto;
   /* 让按钮靠下 */
-  margin-bottom: 20px;
+  margin-bottom: 0px;
 }
 
 .logout-button {
@@ -993,9 +1115,7 @@ textarea {
   text-decoration: underline;
 }
 
-.footer {
-  position: fixed;
-}
+
 
 
 /*帖子*/
@@ -1436,3 +1556,44 @@ textarea {
   /* 限制显示的字符数为 20 */
 }
 </style>
+
+<!--<template>-->
+<!--  <div>-->
+<!--    <h1>用户个人中心</h1>-->
+
+<!--    &lt;!&ndash; 数据加载成功后的显示 &ndash;&gt;-->
+<!--    <div v-if="users.length > 0">-->
+<!--      <div v-for="user in users" :key="user.userId">-->
+<!--        <p>昵称: {{ user.nickname }}</p>-->
+<!--        <p>邮箱: {{ user.email }}</p>-->
+<!--      </div>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; 数据加载中 &ndash;&gt;-->
+<!--    <p v-else>加载中...</p>-->
+<!--  </div>-->
+<!--</template>-->
+
+<!--<script setup>-->
+<!--import { ref, onMounted } from 'vue';-->
+<!--import { list } from '@/apis/testapi';  // 导入封装的 `list` 函数-->
+
+<!--const users = ref([]);  // 用来存储用户列表数据-->
+
+<!--onMounted(async () => {-->
+<!--  try {-->
+<!--    const response = await list();  // 调用封装的 `list` 函数获取数据-->
+<!--    if (response && response.data && response.data.code === 200) {-->
+<!--      users.value = response.data.data;  // 将数据存储到 `users`-->
+<!--    } else {-->
+<!--      console.error('数据加载失败', response);-->
+<!--    }-->
+<!--  } catch (error) {-->
+<!--    console.error('获取用户列表失败:', error);-->
+<!--  }-->
+<!--});-->
+<!--</script>-->
+
+<!--<style scoped>-->
+<!--/* 可以根据需要添加样式 */-->
+<!--</style>-->
