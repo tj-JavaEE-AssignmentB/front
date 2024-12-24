@@ -520,27 +520,34 @@
 }
 },
 
-  async confirmEdit() {
-  if (!this.emailError && !this.usernameError && this.editing) {
-  try {
-  // 调用 Vuex 中的 action，发送更新的用户信息到后端
-  await this.updateUserInfo({
-    userId: this.userTemp.userId,
-  nickname: this.userTemp.nickname,
-    avatarUrl: this.userTemp.avatarUrl,
-    account: this.userTemp.account,
-    password: this.userTemp.password,
-  email: this.userTemp.email,
-   status: this.userTemp.status,
+//   async confirmEdit() {
+//   if (!this.emailError && !this.usernameError && this.editing) {
+//   try {
+//   // 调用 Vuex 中的 action，发送更新的用户信息到后端
+//   await this.updateUserInfo({
+//     userId: this.userTemp.userId,
+//   nickname: this.userTemp.nickname,
+//     avatarUrl: this.userTemp.avatarUrl,
+//     account: this.userTemp.account,
+//     password: this.userTemp.password,
+//   email: this.userTemp.email,
+//    status: this.userTemp.status,
+//
+// });
+//   this.editing = false;
+// } catch (error) {
+//   console.error('更新失败:', error);
+//   alert('更新用户信息失败，请稍后重试。');
+// }
+// }
+// },
+    async confirmEdit() {
+      this.nickname=this.userTemp.nickname;
+      this.email=this.userTemp.email;
 
-});
-  this.editing = false;
-} catch (error) {
-  console.error('更新失败:', error);
-  alert('更新用户信息失败，请稍后重试。');
-}
-}
-},
+
+    },
+
   toggleUserMenu() {
   this.showUserMenu = !this.showUserMenu;
 },
