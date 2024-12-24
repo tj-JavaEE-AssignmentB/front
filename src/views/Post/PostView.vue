@@ -163,6 +163,9 @@ export default {
     async fetchComments() {
       const response = await getComments(this.postId)
       this.comments = response.data.data
+      for(let one of this.comments){
+        one.authorAvatar=basePicturesPath+one.authorAvatar
+      }
     },
     
     async handlePostLike() {
@@ -362,7 +365,8 @@ export default {
   padding: 24px;
   margin-bottom: 30px;
   border-bottom: 1px solid #ffffff;
-  min-height: 300px;  /* 设置最小高度 */
+  overflow-y: scroll;
+  min-height: 900px;  /* 设置最小高度 */
 }
 
 .author-info {

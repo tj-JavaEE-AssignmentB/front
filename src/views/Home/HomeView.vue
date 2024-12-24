@@ -7,7 +7,7 @@
       <el-col :span="3" v-for="category in categories" :key="category.id">
         <el-card class="category-tag" shadow="hover">
           <button @click="goToCategory(category.id)">
-          <img :src="category.imageUrl" alt="category.description" class="category-image" />
+          <img :src="category.imageUrl" alt="category.description" class="category-image" style="width: 100%;"/>
           </button>
         </el-card>>
       </el-col>
@@ -38,6 +38,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getCategories,getRecentPosts } from '@/apis/forum'
+import { basePicturesPath } from '@/utils/alldata';
 
 export default {
   name: 'HomeView',
@@ -57,6 +58,10 @@ export default {
         
         categories.value = categoriesRes.data.data
         posts.value = postsRes.data.data
+
+        for(let one of categories.value){
+          one.imageUrl=basePicturesPath+one.imageUrl
+        }
 
         console.log('Posts loaded:', posts.value)
       } catch (error) {
@@ -103,15 +108,6 @@ export default {
   gap: 10px;
   margin-bottom: 20px;
 }
-
-.category-tag {
-  padding: 5px 15px;
-  background-color: #f0f0f0;
-  border-radius: 15px;
-  cursor: pointer;
-}
-
-
 
 .posts-list {
   display: grid;

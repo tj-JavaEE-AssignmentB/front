@@ -8,6 +8,8 @@
     >
     <button @click="handleSearch" class="search-button">搜索</button>
     <el-button class="create-post" @click="showCreatePost = true">发布新帖子</el-button>
+    <el-button class="create-post" @click="moveToCenter" style="color:aliceblue;background-color: blue;">个人中心</el-button>
+    <router-link to="userlogin"><el-button class="create-post" style="color:aliceblue;background-color: blue;">登录/注册</el-button></router-link>
   </div>
       
       <div v-if="showCreatePost" class="create-post-dialog">
@@ -35,6 +37,7 @@ import { ref,onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { createPost } from '@/apis/forum'
 import { getCategories } from '@/apis/forum'
+import { identityGet } from '../../apis/identity';
 
 export default {
   name: 'LayoutView',
@@ -46,6 +49,20 @@ export default {
     const handleSearch = () => {
       if (searchQuery.value.trim()) {
         router.push(`/search/${searchQuery.value.trim()}`)
+      }
+    }
+    const moveToCenter=async()=>{
+      try{
+        const role = await identityGet()
+        if (role.data["identity"] === 'admin') {
+          router.push('/admincenter')
+        } 
+        else if(role.data["identity"] === 'user'){
+          let path = '/usercenter/'+role.data["userId"]
+          router.push(path)
+        }
+      }catch(error){
+        console.log(error)
       }
     }
     const showCreatePost = ref(false)
@@ -106,6 +123,7 @@ export default {
     }
 
     return {
+      moveToCenter,
       searchQuery,
       showDropdown,
       handleSearch,

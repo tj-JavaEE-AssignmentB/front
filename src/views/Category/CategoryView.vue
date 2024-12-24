@@ -44,6 +44,7 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getCategories, getPostsByCategory } from '@/apis/forum'
+import { basePicturesPath } from '@/utils/alldata';
 
 export default {
   name: 'CategoryView',
@@ -60,6 +61,9 @@ export default {
       try {
         const res = await getCategories()
         categories.value = res.data.data
+        for(let one of categories.value){
+          one.imageUrl=basePicturesPath+one.imageUrl
+        }
       } catch (error) {
         console.error('获取分类失败:', error)
       }
