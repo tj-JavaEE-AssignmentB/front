@@ -114,8 +114,9 @@
 </template>
 
 <script>
-import { getPostDetails, likePost, reportPost, createComment, getComments, likeComment, dislikeComment, deletePost, deleteComment } from '@/apis/forum'
+import { getPostDetails, likePost, dislikePost, reportPost, createComment, getComments, likeComment, dislikeComment, deletePost, deleteComment } from '@/apis/forum'
 import { identityGet } from '@/apis/identity'  // 假设这是获取身份的API
+import { basePicturesPath } from '@/utils/alldata';
 
 export default {
   name: 'ForumDetail',
@@ -133,7 +134,7 @@ export default {
         likes: '',
         dislikes: '',
         isLiked: false,
-        isReported: false,
+        isDisliked: false,
         likedUsers: [],
         dislikedUsers: []
       },
@@ -152,6 +153,8 @@ export default {
         
         const response = await getPostDetails(this.postId)
         this.post = response.data.data
+        console.log(response.data.data)
+        this.post.authorAvatar=basePicturesPath+this.post.authorAvatar
       } catch (error) {
         this.$message.error('获取帖子详情失败')
       }
@@ -168,8 +171,8 @@ export default {
         this.post.isLiked = !this.post.isLiked
         if (this.post.isLiked) {
           this.post.likes = (this.post.likes || 0) + 1
-          if (this.post.isReported) {
-            this.post.isReported = false
+          if (this.post.isDisliked) {
+            this.post.isDisliked = false
             this.post.dislikes = Math.max(0, (this.post.dislikes || 0) - 1)
           }
         } else {
@@ -180,21 +183,30 @@ export default {
       }
     },
 
-    async handleReportPost() {
+    async handlePostDislike() {
       try {
-        await this.$confirm('确定要举报这个帖子吗？', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        })
-        
-        await reportPost(this.post.id)
-        this.post.isReported = true
-        this.$message.success('举报成功，管理员会尽快处理')
-      } catch (error) {
-        if (error !== 'cancel') {
-          this.$message.error('举报失败')
+        await dislikePost(this.post.id)
+        this.post.isDisliked = !this.post.isDisliked
+        if (this.post.isDisliked) {
+          this.post.dislikes = (this.post.dislikes || 0) + 1
+          if (this.post.isLiked) {
+            this.post.isLiked = false
+            this.post.likes = Math.max(0, (this.post.likes || 0) - 1)
+          }
+        } else {
+          this.post.dislikes = Math.max(0, (this.post.dislikes || 0) - 1)
         }
+      } catch (error) {
+        this.$message.error('操作失败')
+      }
+    },
+
+    async reportPost() {
+      try {
+        await reportPost(this.post.id)
+        this.$message.success('举报成功')
+      } catch (error) {
+        this.$message.error('举报失败')
       }
     },
 
@@ -306,7 +318,7 @@ export default {
     async fetchUserIdentity() {
       try {
         const response = await identityGet()
-        const identity = response.data
+        const identity = response.data.identity
         this.isAdmin = identity === 'admin'
         this.isVisitor = identity === 'visitor'
       } catch (error) {
@@ -438,11 +450,6 @@ export default {
 .action-btn.active {
   color: #409EFF;
   border-color: #409EFF;
-}
-
-/* 添加举报按钮样式 */
-.action-btn.active[type="warning"] {
-  color: #E6A23C;
 }
 
 /* 评论区样式 */
