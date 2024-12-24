@@ -16,14 +16,16 @@
 
 
     <div class="posts-list">
+      <div v-if="!posts.length">暂无帖子</div>
+      
       <div v-for="post in posts" :key="post.id" class="post-card" @click="goToPost(post.id)">
         <h3>{{ post.title }}</h3>
-        <p class="post-preview">{{ post.content.substring(0, 100) }}...</p>
+        <p class="post-preview">{{ post.content?.substring(0, 100) || '' }}...</p>
         <div class="post-meta">
           <span>{{ post.authorName }}</span>
-          <span>{{ post.createTime }}</span>
+          <span>{{ post.releaseTime || '暂无时间' }}</span>
           <div class="post-stats">
-            <span>👍 {{ post.likes }}</span>
+            <span>👍 {{ post.likes || 0 }}</span>
           </div>
         </div>
       </div>
@@ -69,7 +71,9 @@ export default {
         ])
 
         categories.value = categoriesRes.data
-        posts.value = postsRes.data
+        posts.value = postsRes.data.data
+        
+        console.log('Posts loaded:', posts.value)
       } catch (error) {
         console.error('获取数据失败:', error)
         // 这里可以添加错误处理，比如显示错误提示

@@ -39,10 +39,8 @@ export function createPost(post){
 export const searchPosts = (keyword) => {
   return request({
     method: 'GET',
-    url: '/post/search',
-    params: {
-      keyword: keyword
-    }
+    url: `/post/search/${keyword}`,
+    
   })
 }
 

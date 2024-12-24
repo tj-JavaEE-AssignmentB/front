@@ -7,9 +7,7 @@
       @keyup.enter="handleSearch"
     >
     <button @click="handleSearch" class="search-button">搜索</button>
-    <div class="create-post">
-      <el-button @click="showCreatePost = true">发布新帖子</el-button>
-    </div>
+    <el-button class="create-post" @click="showCreatePost = true">发布新帖子</el-button>
   </div>
       
       <div v-if="showCreatePost" class="create-post-dialog">
