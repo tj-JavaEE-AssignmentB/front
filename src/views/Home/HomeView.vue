@@ -55,7 +55,7 @@ export default {
           getRecentPosts()
         ])
         
-        categories.value = categoriesRes.data
+        categories.value = categoriesRes.data.data
         posts.value = postsRes.data.data
         
         console.log('Posts loaded:', posts.value)
