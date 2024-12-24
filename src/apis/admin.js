@@ -152,3 +152,25 @@ export const feedbackProcess=async(feedbackId)=>{
     console.log(error)
   }
 }
+
+export const categoryAdd=async(categoryAddInfo)=>{
+  try{
+    const formData = new FormData();
+    formData.append('categoryName', categoryAddInfo.categoryName);
+    formData.append('description', categoryAddInfo.description);
+    formData.append('image', categoryAddInfo.image, categoryAddInfo.image.name);
+
+    const response = await httpInstance({
+      url: '/category/categoryAdd',
+      method: 'POST',
+      data:formData
+    })
+    if(response.status!==200){
+      console.log('未知错误')
+    }else{
+      return true
+    }
+  }catch(error){
+    console.log(error)
+  }
+}
