@@ -1,7 +1,7 @@
 <template>
   <div class="onemain">
-    <div>投诉人：{{ onePostComplainInfo.reporterName }}</div>
-    <div>被投诉帖子：{{ onePostComplainInfo.postTitle }}</div>
+    <router-link :to="reporterNamePath"><div>投诉人：{{ onePostComplainInfo.reporterName }}</div></router-link>
+    <router-link :to="postTitlePath"><div>被投诉帖子：{{ onePostComplainInfo.postTitle }}</div></router-link>
     <div>投诉原因：{{ onePostComplainInfo.reportReason }}</div>
     <div>投诉时间：{{ onePostComplainInfo.reportTime }}</div>
     <div @click="choosePass" class="button" style="background-color: green;">处理完毕</div>
@@ -28,6 +28,9 @@ const choosePass=async()=>{
   await postComplainProcess(props.onePostComplainInfo.reportId)
   deleteConfirm()
 }
+
+let reporterNamePath='/userhomepage/'+props.onePostComplainInfo.reporterId
+let postTitlePath='/post/'+props.onePostComplainInfo.reportedPostId
 
 let emit = defineEmits(['delete'])
 let deleteConfirm = () => {
