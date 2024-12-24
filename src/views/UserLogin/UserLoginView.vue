@@ -277,7 +277,7 @@ opacity: 0;
 }
 
 .button1{
-width: 100%;
+width: 75%;
 height: 35px;
 background: rgb(36,217,127);
 color: #ffffff;
