@@ -95,13 +95,6 @@ export const dislikeComment = (commentId) => {
   })
 }
 
-export const dislikePost = (postId)=>{
-  return request({
-    method: 'POST',
-    url: `/post/${postId}/dislike`,
-  })
-}
-
 // 删除帖子
 export const deletePost = (postId) => {
   return request({
