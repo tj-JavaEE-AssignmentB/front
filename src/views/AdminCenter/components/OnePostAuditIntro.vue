@@ -1,7 +1,7 @@
 <template>
   <div class="onemain">
     <div>帖子标题：{{ oneAuditPostInfo.postTitle }}</div>
-    <div>发帖人：{{ oneAuditPostInfo.authorName }}</div>
+    <router-link :to="authorNamePath"><div>发帖人：{{ oneAuditPostInfo.authorName }}</div></router-link>
     <div>帖子种类：{{ oneAuditPostInfo.categoryName }}</div>
     <div>发布时间：{{ oneAuditPostInfo.publishTime }}</div>
     <div @click="isPostDetail=true" class="button" style="background-color: blue;">详情</div>
@@ -34,6 +34,8 @@ const props = defineProps({
 })
 
 let isPostDetail=ref(false)
+
+let authorNamePath='/userhomepage/'+props.oneAuditPostInfo.authorId
 
 const choosePass=async()=>{
   await postPass(props.oneAuditPostInfo.postId)

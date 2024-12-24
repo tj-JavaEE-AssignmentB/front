@@ -1,6 +1,6 @@
 <template>
   <div class="onemain">
-    <div>反馈人：{{ oneFeedbackInfo.feedbackUserName }}</div>
+    <router-link :to="feedbackUserPath"><div>反馈人：{{ oneFeedbackInfo.feedbackUserName }}</div></router-link>
     <div>反馈内容：{{ oneFeedbackInfo.feedbackContent }}</div>
     <div>反馈时间：{{ oneFeedbackInfo.feedbackTime }}</div>
     <div @click="choosePass" class="button" style="background-color: green;">处理完毕</div>
@@ -9,7 +9,7 @@
 
 <script setup>
 import { FeedbackInfo } from '@/utils/structures';
-import { defineProps, defineEmits } from 'vue';
+import { defineProps, defineEmits, ref } from 'vue';
 import { feedbackProcess } from '@/apis/admin';
 
 const props = defineProps({
@@ -22,6 +22,8 @@ const props = defineProps({
     default: 0
   }
 })
+
+let feedbackUserPath=ref('/userhomepage/'+props.oneFeedbackInfo.feedbackUserId)
 
 const choosePass=async()=>{
   await feedbackProcess(props.oneFeedbackInfo.feedbackId)

@@ -3,7 +3,7 @@ import request from '../utils/request'
 export function getCategories(){
   return request({
     method: 'GET',
-    url: '/categories',
+    url: '/category',
   })
 }
 
@@ -31,7 +31,7 @@ export function getPostByTitle(title){
 export function createPost(post){
   return request({
     method: 'POST',
-    url: '/posts',
+    url: '/post',
     data: post,
   })
 }
@@ -39,7 +39,7 @@ export function createPost(post){
 export const searchPosts = (keyword) => {
   return request({
     method: 'GET',
-    url: '/posts/search',
+    url: '/post/search',
     params: {
       keyword: keyword
     }
@@ -49,7 +49,7 @@ export const searchPosts = (keyword) => {
 export const getPostDetails = (postId)=>{
   return request({
     method: 'GET',
-    url: `/posts/${postId}`,
+    url: `/post/${postId}`,
   })
 }
 
@@ -57,29 +57,49 @@ export const getPostDetails = (postId)=>{
 export const likePost = (postId)=>{
   return request({
     method: 'POST',
-    url: `/posts/${postId}/like`,
+    url: `/post/${postId}/like`,
   })
 }
 
 export const reportPost = (postId)=>{
   return request({
     method: 'POST',
-    url: `/posts/${postId}/report`,
+    url: `/post/${postId}/report`,
   })
 }
 
 export const createComment = (newComment)=>{
   return request({
     method: 'POST',
-    url: `/posts/${newComment.postId}/makecomment`,
+    url: `/comment/${newComment.postId}`,
     data: newComment
-    
   })
 }
 
 export const getComments = (postId)=>{
   return request({
     method: 'GET',
-    url: `/api/posts/${postId}/comments`,
+    url: `/comment/${postId}`,
+  })
+}
+
+export const likeComment = (commentId) => {
+  return request({
+    method: 'POST',
+    url: `/comment/${commentId}/like`
+  })
+}
+
+export const dislikeComment = (commentId) => {
+  return request({
+    method: 'POST',
+    url: `/comment/${commentId}/dislike`
+  })
+}
+
+export const dislikePost = (postId)=>{
+  return request({
+    method: 'POST',
+    url: `/post/${postId}/dislike`,
   })
 }

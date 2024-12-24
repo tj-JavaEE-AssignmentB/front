@@ -9,6 +9,7 @@ import UserHomepageView from '@/views/UserHomepage/UserHomepageView.vue';
 import UserLoginView from '@/views/UserLogin/UserLoginView.vue';
 import { createRouter, createWebHistory } from 'vue-router';
 import SearchView from '@/views/SearchView/SearchView.vue';
+import { identityGet } from '@/apis/identity';
 
 //页面路由配置
 const router = createRouter({
@@ -66,6 +67,16 @@ const router = createRouter({
       path: '/admincenter',
       name: 'admincenter',
       component: AdminCenterView,
+      beforeEnter: async (to, from, next) => {
+        const role = await identityGet()
+        if (role.data["identity"] !== 'admin') {
+          console.log(role)
+          console.log(role.identity)
+          next('/adminlogin')
+        } else {
+          next()
+        }
+      }
     },
     {
       path: '/Home',
