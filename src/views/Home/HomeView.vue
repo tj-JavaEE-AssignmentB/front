@@ -1,7 +1,7 @@
 <template>
   <div class="home">
 
-  
+
 
     <el-row :gutter="20" class="category-list">
       <el-col :span="3" v-for="category in categories" :key="category.id">
@@ -29,6 +29,8 @@
       </div>
     </div>
 
+    <button @click="goToUserCenter">前往个人中心</button>
+
   </div>
 </template>
 
@@ -38,6 +40,19 @@ import { useRouter } from 'vue-router'
 import { getCategories,getRecentPosts } from '@/apis/forum'
 
 export default {
+  data() {
+    return {
+      currentUserId: '123', // 这里替换成实际的用户ID逻辑
+    };
+  },
+  methods: {
+    goToUserCenter() {
+      this.$router.push({
+        name: 'usercenter',
+        params: { userid: this.currentUserId }
+      });
+    }
+  },
   name: 'HomeView',
   setup() {
     const router = useRouter()
@@ -52,7 +67,7 @@ export default {
           getCategories(),
           getRecentPosts()
         ])
-        
+
         categories.value = categoriesRes.data
         posts.value = postsRes.data
       } catch (error) {
@@ -129,4 +144,4 @@ export default {
 }
 
 
-</style> 
+</style>

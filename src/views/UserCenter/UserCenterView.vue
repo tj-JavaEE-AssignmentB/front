@@ -6,7 +6,7 @@
       <div class="left-panel">
         <div class="user-info-container">
           <div class="avatar-container" @click="openAvatarSelection">
-            <img :src="currentUser.avatar" alt="用户头像" class="avatar" />
+            <img :src="user. avatarUrl" alt="用户头像" class="avatar" />
             <div class="avatar-overlay">更换头像</div>
             <!-- 隐藏的文件输入框 -->
             <input type="file" ref="fileInput" @change="handleFileUpload" accept="image/*" style="display: none;" />
@@ -16,8 +16,9 @@
             <div class="form-group">
               <label for="username">用户名：</label>
               <div class="editable-field-container">
-                <span v-if="!editing">{{ currentUser.username }}</span>
-                <input v-if="editing" type="username" v-model="userTemp.username" @input="validateUsername"
+                <span v-if="!editing">{{ user.nickname }}</span>
+<!--                <span v-if="!editing">{{ userID }}</span>-->
+                <input v-if="editing" type="username" v-model="userTemp.nickname" @input="validateUsername"
                        class="fixed-input" />
                 <!-- 错误信息显示在输入框下方 -->
                 <p v-if="usernameError" class="error-message">{{ usernameError }}</p> <!-- 报错信息显示在输入框下方 -->
@@ -27,7 +28,7 @@
             <div class="form-group">
               <label for="email">邮&nbsp;箱：</label>
               <div class="editable-field-container">
-                <span v-if="!editing">{{ currentUser.email }}</span>
+                <span v-if="!editing">{{ user.email }}</span>
                 <input v-if="editing" type="email" v-model="userTemp.email" @input="validateEmail"
                        class="fixed-input" />
                 <!-- 错误信息显示在输入框下方 -->
@@ -37,8 +38,8 @@
             <div class="form-group">
               <label for="bio">简&nbsp;介：</label>
               <div class="editable-field-container">
-                <span v-if="!editing">{{ currentUser.bio }}</span>
-                <textarea v-if="editing" id="bio" v-model="userTemp.bio" class="fixed-input"></textarea>
+                <span v-if="!editing">{{ user.account }}</span>
+                <textarea v-if="editing" id="bio" v-model="userTemp.account" class="fixed-input"></textarea>
               </div>
             </div>
           </div>
@@ -54,6 +55,7 @@
 
           </div>
           <button class="change-password-button" @click="showChangePasswordDialog = true">修改账户密码</button>
+          <button class="home-button" @click="goHome">返回主页</button>
           <div class="logout-button-container">
             <button class="logout-button" @click="performLogout">退出登录</button>
           </div>
@@ -90,14 +92,16 @@
         <!-- 根据选择展示内容 -->
         <div v-if="selectedText === '我的帖子'" class="selectedoption">
 
+
           <!-- 帖子列表 -->
-          <div v-for="post in posts" :key="post.articleId" class="post" @click="openPostDialog(post)">
-            <h3 class="post-title">{{ post.title }}</h3>
-            <p class="post-content">{{ post.content }}</p>
+          <div v-for="post in userPosts" :key="post?.postId" class="post" @click="openPostDialog(post)">
+            <h3 class="post-title">{{ post?.postTitle }}</h3>
+            <p class="post-content">{{ post?.postContent }}</p>
             <p class="post-meta">
-              发布日期: {{ post.publishedDate }}
+              发布日期: {{ post?.publishTime }}
+              <!-- 如果需要显示文章类型，可以根据实际情况取消注释并调整逻辑 -->
               <!-- <span v-if="post.article_type === 'announcement'"> | 类型: 公告</span>
-      <span v-else> | 类型: 文章</span> -->
+              <span v-else> | 类型: 文章</span> -->
             </p>
             <!-- 确保删除按钮使用 @click.stop 来防止冒泡 -->
             <button class="delete-button" @click.stop="confirmDelete(post)">删除</button>
@@ -109,11 +113,11 @@
         <div v-if="selectedText === '我的收藏'" class="selectedoption">
 
           <!-- 收藏列表 -->
-          <div v-for="favorite in userFavors" :key="favorite.articleId" class="post"
+          <div v-for="favorite in favoritePosts" :key="favorite.postId" class="post"
                @click="openFavoriteDialog(favorite)">
-            <h3 class="post-title">{{ favorite.title }}</h3>
-            <p class="post-content">{{ favorite.content }}</p>
-            <p class="post-meta">发布日期: {{ favorite.publishedDate }}</p>
+            <h3 class="post-title">{{ favorite.postTitle }}</h3>
+            <p class="post-content">{{ favorite.postContent }}</p>
+            <p class="post-meta">发布日期: {{ favorite.publishTime }}</p>
             <!-- 改为取消收藏按钮 -->
             <button class="cancelFavorite-button" @click.stop="confirmCancelFavorite(favorite)">取消收藏</button>
           </div>
@@ -122,18 +126,20 @@
         <!-- 评论列表 -->
         <div v-if="selectedText === '我的评论'" class="selectedoption">
           <div v-for="comment in userComments" :key="comment.commentId" class="post">
-            <h3 class="comment-title">{{ comment.content }}</h3>
+            <h3 class="comment-title">{{ comment.commentContent }}</h3>
 
 
             <!-- 评论底部信息：评论者和时间在左下角，帖子标题在右下角 -->
             <div class="comment-meta">
               <div class="comment-left">
-                <span>{{ comment.username }}</span>
-                <span>&nbsp;|&nbsp;</span>
-                <span>{{ comment.createdDate }}</span>
+                <span>{{ comment.postTitle }}</span>
+<!--                <span>{{ comment.username }}</span>-->
+<!--                <span>&nbsp;|&nbsp;</span>-->
+
               </div>
               <div class="comment-right">
-                <span>{{ comment.title }}</span>
+
+                <span>{{ comment.commentTime }}</span>
               </div>
             </div>
             <!-- 确保删除按钮使用 @click.stop 来防止冒泡 -->
@@ -278,9 +284,20 @@
 
 <script>
   // import { mapGetters, mapActions } from 'vuex';
+  import { getUserInfo } from '@/apis/userapi';
+  import { updateUserInfo } from '@/apis/userapi';
+  import { fetchFavoritePostsByUser } from '@/apis/post';
+  import { fetchPostsByAuthor } from '@/apis/post';
+  import { fetchCommentsByUser } from '@/apis/post';
+  import request from '@/utils/request';
 
   export default {
-
+    created() {
+      this.fetchUserInfo();
+      this.fetchPostsByAuthor();
+      this.fetchFavoritePosts();
+      this.fetchCommentsByUser()
+    },
   computed: {
   // ...mapGetters({
   //   currentUser: 'getUserInfo', // 获取当前用户信息
@@ -290,6 +307,10 @@
   //   getPosts: 'getPosts',
   //   userComment: 'commentsByUser',
   // }),
+    userId() {
+      return this.$route.params.userid;
+    },
+
   posts() {
   return this.userPosts;
 },
@@ -299,21 +320,16 @@
 },
   data() {
   return {
-  userComments: [
-{ id: 1, content: '这是我的第一条评论', author: '张三', postId: 1 },
-{ id: 2, content: '这是我的第二条评论', author: '李四', postId: 2 },
 
-  ],
   userPosts: [
-{ id: 1, title: '我的第一个帖子', content: '这是第一个帖子的内容...', publishedDate: '2024-09-06' },
-{ id: 2, title: '我的第二个帖子', content: '这是第二个帖子的内容...', publishedDate: '2024-09-05' },
 
   ],
-  userFavors: [
-    { favorite_id: 1, article_id: 101, title: "收藏的帖子1", content: "这是第一个示例帖子的内容...", publishedDate: "2024-09-06" },
-    { favorite_id: 2, article_id: 102, title: "收藏的帖子2", content: "这是第二篇收藏的帖子内容...",publishedDate: "2024-09-05" }
-  ],
-  postComment: [], // 如果需要可以填充一些示例数据
+    favoritePosts: [
+
+    ],
+    userComments:[],
+
+
   showChangePasswordDialog: false, // 控制弹出框显示
   passwordError: '',
   oldPassword: '',
@@ -338,88 +354,106 @@
   editing: false,
   emailError: null,
   usernameError: null,
-
+    userID: null, // 确保这里定义了 userID
+    showAvatarSelection: false ,// 确保这里定义了 showAvatarSelection
   // 添加一个当前用户对象，用于模拟用户信息
-  currentUser: {
-  id: 1,
-  username: '张三',
-  email: 'zhangsan@example.com',
-  avatar: 'https://example.com/avatar.jpg'
-}
+    user: {
+      userId: "",
+      nickname: "",
+      avatarUrl: "",
+      account: "",
+      password:"",
+      email: "",
+      status: ""
+    },
+    currentUser:{},
 };
 },
-  //comments: [/*从后端获取*/ ],  // 存储用户的评论信息
-  // mounted() {
-  //   // 模拟或实际获取用户帖子
-  //   this.fetchUserPosts(this.currentUser.userId)
-  //       .then(result => {
-  //         console.log('fetchUserPosts 返回的有效数据:', result); // 调试信息
-  //         this.userPosts = result; // 将异步获取的数据存储在组件的 data 中
-  //       })
-  //       .catch(error => {
-  //         console.error('获取帖子时出错:', error);
-  //       });
-  //
-  //   // 模拟或实际获取用户评论
-  //   if (process.env.NODE_ENV === 'development') {
-  //     // 模拟数据（仅用于开发环境）
-  //     console.log('模拟获取用户评论');
-  //     this.userComments = [
-  //       { id: 1, content: '模拟评论1' },
-  //       { id: 2, content: '模拟评论2' }
-  //     ];
-  //   } else {
-  //     // 生产环境中实际调用API
-  //     this.$store.dispatch('fetchCommentsByUser', this.currentUser.userId)
-  //         .then(result => {
-  //           console.log('获取到的评论:', result); // 调试信息
-  //           this.userComments = result; // 将返回的数据存储在本地
-  //         })
-  //         .catch(error => {
-  //           console.error('获取用户评论时出错:', error);
-  //         });
-  //   }
-  //
-  //   // 获取用户收藏
-  //   this.getUserFavorites();
-  //
-  //   // this.$store.dispatch('fetchFavoritesByUser', this.currentUser.userId)
-  //   //   .then(result => {
-  //   //     console.log('获取到的收藏:', result); // 调试信息
-  //   //     this.userFavors = result; // 将返回的数据存储在本地
-  //   //   })
-  //   //   .catch(error => {
-  //   //     console.error('获取用户收藏时出错:', error);
-  //   //   });
-  // },
+
   methods: {
-  // ...mapActions({
-  //   logout: 'logout',
-  //   setAvatar: 'setAvatar',
-  //   updateUserInfo: 'updateUserInfo',
-  //   fetchUserPosts: 'fetchUserPosts',
-  //   deletePost: 'deletePost',
-  // }),
-  async fetchUserPosts(userId) {
-  try {
-  let response;
-  if (process.env.NODE_ENV === 'development') {
-  // 模拟数据（仅用于开发环境）
-  console.log('模拟获取帖子:', userId);
-  response = await new Promise((resolve) =>
-  setTimeout(() => resolve([
-{ id: 1, title: '模拟帖子1', content: '这是模拟内容1' },
-{ id: 2, title: '模拟帖子2', content: '这是模拟内容2' }
-  ]), 1000));
-} else {
-  // 生产环境中实际调用API
-  response = await this.fetchApi('/api/posts/user/' + userId); // 替换为实际的API路径
-}
-  this.userPosts = response; // 将帖子数据存储在组件的 data 中
-} catch (error) {
-  console.error('获取帖子时出错:', error);
-}
-},
+
+
+    async fetchUserInfo() {
+      try {
+        this.loading = true;
+        const response = await getUserInfo(this.userId);
+        this.user = response.data;
+      } catch (error) {
+        console.error('获取用户信息失败:', error);
+        if (error.response && error.response.status === 404) {
+          this.$message.error('用户不存在');
+        } else {
+          this.$message.error('获取用户信息失败，请重试');
+        }
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchPostsByAuthor() {
+      if (!this.userId) {
+        this.$router.push('/login');
+        return;
+      }
+
+      try {
+        this.loading = true;
+        const response = await fetchPostsByAuthor(this.userId);
+        console.log(response);
+        this.userPosts = response.data;
+      } catch (error) {
+        console.error('获取帖子信息失败:', error);
+        this.$message.error('获取帖子信息失败，请重试');
+      } finally {
+        this.loading = false;
+      }
+    },
+    async fetchFavoritePosts() {
+
+      try {
+        this.loading = true;
+        const response = await fetchFavoritePostsByUser(this.userId); // 假设这是你用来获取收藏帖子的API调用
+        console.log(response);
+        this.favoritePosts = response.data; // 将响应数据赋值给组件的数据属性
+      } catch (error) {
+        console.error('获取收藏帖子信息失败:', error);
+        this.$message.error('获取收藏帖子信息失败，请重试');
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchCommentsByUser() {
+
+      try {
+        this.loading = true;
+        // 调用后端API获取用户评论，假设我们有一个名为 fetchCommentsByUser 的API方法
+        const response = await fetchCommentsByUser(this.userId);
+        console.log(response);
+        this.userComments = response.data; // 假设返回的数据结构中，评论信息存储在data属性下
+      } catch (error) {
+        console.error('获取评论信息失败:', error);
+        this.$message.error('获取评论信息失败，请重试'); // 使用框架的消息提示功能显示错误信息给用户
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async saveUserInfo() {
+      try {
+        await updateUserInfo(this.userId, this.userInfo);
+        // 更新成功，刷新数据或提示用户
+        this.$message.success('用户信息更新成功');
+      } catch (error) {
+        // 处理错误，提示用户
+        this.$message.error('更新用户信息失败，请稍后重试');
+      }
+    },
+
+
+
+
+
 
   async fetchPostComments(articleId) {
   try {
@@ -463,7 +497,7 @@
 }
 },
   editUserInfo() {
-  this.userTemp = { ...this.currentUser };
+  this.userTemp = { ...this.user };
   this.editing = true;
 },
   // 验证用户名是否为邮箱格式
@@ -490,13 +524,14 @@
   try {
   // 调用 Vuex 中的 action，发送更新的用户信息到后端
   await this.updateUserInfo({
-  username: this.userTemp.username,
+    userId: this.userTemp.userId,
+  nickname: this.userTemp.nickname,
+    avatarUrl: this.userTemp.avatarUrl,
+    account: this.userTemp.account,
+    password: this.userTemp.password,
   email: this.userTemp.email,
-  password: this.userTemp.password,
-  languagePreference: this.userTemp.languagePreference,
-  bio: this.userTemp.bio,
-  avatar: this.userTemp.avatar,
-  gender: this.userTemp.gender
+   status: this.userTemp.status,
+
 });
   this.editing = false;
 } catch (error) {
@@ -522,45 +557,71 @@
   openAvatarSelection() {
   this.$refs.fileInput.click(); // 点击头像区域时，打开文件选择器
 },
-  handleFileUpload(event) {
-  const file = event.target.files[0];
-  if (file) {
-  const reader = new FileReader();
-  reader.onload = (e) => {
-  this.selectedAvatar = e.target.result; // 将Base64数据存储在selectedAvatar
-  this.updateUserAvatar(); // 调用方法更新头像
-};
-  reader.readAsDataURL(file); // 将文件读取为Base64格式
-}
-},
-  async updateUserAvatar() {
-  try {
-  await this.updateUserInfo({
-  username: this.currentUser.username,
-  email: this.currentUser.email,
-  password: this.currentUser.password,
-  languagePreference: this.currentUser.languagePreference,
-  bio: this.currentUser.bio,
-  avatar: this.selectedAvatar,
-  gender: this.currentUser.gender
-});
-} catch (error) {
-  console.error('更新头像失败:', error);
-  alert('更新头像失败，请稍后再试。');
-}
-},
-  goToCatalog() {
-  this.$router.push('/catalog');
-},
-  goToCommunity() {
-  this.$router.push('/community');
-},
-  goToAdminPanel() {
-  this.$router.push('/adminpanel');
-},
-  goHome() {
-  this.$router.push('/home');
-},
+
+    handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        this.uploadAvatar(file).then(url => {
+          this.currentUser.avatarUrl = url; // 假设后端返回文件的URL
+          this.updateUserInfo(this.currentUser);
+        }).catch(error => {
+          console.error('上传头像失败:', error);
+          alert('上传头像失败，请稍后再试。');
+        });
+      }
+    },
+    uploadAvatar(file) {
+      const formData = new FormData();
+      formData.append('file', file);
+      return request.post('/userCenter/avatar', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+    },
+    updateUserInfo(user) {
+      if (!this.userId) {
+        this.$router.push('/login');
+        return;
+      }
+
+      this.loading = true;
+
+      request.put(`/userCenter/update/${this.userId}`, user)
+          .then(response => {
+            this.$message.success('用户信息更新成功');
+            console.log(response);
+          })
+          .catch(error => {
+            console.error('更新用户信息失败:', error);
+            this.$message.error('更新用户信息失败，请稍后再试。');
+          })
+          .finally(() => {
+            this.loading = false;
+          });
+    },
+//   async updateUserAvatar() {
+//   try {
+//   await this.updateUserInfo({
+//   username: this.currentUser.username,
+//   email: this.currentUser.email,
+//   password: this.currentUser.password,
+//   languagePreference: this.currentUser.languagePreference,
+//   bio: this.currentUser.bio,
+//   avatar: this.selectedAvatar,
+//   gender: this.currentUser.gender
+// });
+// } catch (error) {
+//   console.error('更新头像失败:', error);
+//   alert('更新头像失败，请稍后再试。');
+// }
+// },
+
+    goHome() {
+      this.$router.push({ name: 'home' });
+    },
+
+
   performLogout() {
   this.logout();
   this.$router.push('/login'); // 跳转到登录页面
@@ -590,11 +651,11 @@
   this.selectedPost = null; // 重置选择的帖子
 },
   // 打开帖子详情弹框
-  openPostDialog(post) {
-  this.selectedPost = post;
+  openPostDialog(userPosts) {
+  this.selectedPost = userPosts;
   this.showPostDialog = true;
   // 根据选中的 post 的 articleId 获取该帖子的评论
-  this.fetchPostComments(post.articleId);
+  this.fetchPostComments(userPosts.postId);
 },
   // 关闭帖子详情弹框
   closePostDialog() {
@@ -932,12 +993,24 @@ textarea {
   /* 容器的宽度设置为按钮的总宽度加上间距 */
 }
 
+.home-button {
+  background-color: #28a745; /* 绿色按钮 */
+  color: white;
+  margin-top: 15px;
+  /* 让按钮靠下 */
+}
+
+.home-button:hover {
+  background-color: #218838; /* 悬停时颜色变深 */
+}
+
+
 .logout-button-container {
   display: flex;
   justify-content: center;
   margin-top: auto;
   /* 让按钮靠下 */
-  margin-bottom: 20px;
+  margin-bottom: 0px;
 }
 
 .logout-button {
@@ -1148,9 +1221,7 @@ textarea {
   text-decoration: underline;
 }
 
-.footer {
-  position: fixed;
-}
+
 
 
 /*帖子*/
