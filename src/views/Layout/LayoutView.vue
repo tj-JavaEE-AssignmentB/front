@@ -63,9 +63,9 @@ export default {
       try {
         // 并行请求数据
         const [categoriesRes] = await Promise.all([
-          getCategories().data,
+          getCategories()
         ])
-        categories.value = categoriesRes.data
+        categories.value = categoriesRes.data.data
       } catch (error) {
         console.error('获取数据失败:', error)
         // 这里可以添加错误处理，比如显示错误提示
@@ -83,9 +83,18 @@ export default {
     const createNewPost = async () => {
       loading.value = true
       try {
-        var time = new Date().toISOString();
-        newPost.value.releaseTime = time.toISOString().split('T')[0] + ' '  
-        + time.toTimeString().split(' ')[0]; 
+        // 获取当前时间并格式化
+        const now = new Date()
+        const time = now.toLocaleString('zh-CN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false
+        })
+        newPost.value.releaseTime = time
         createPost(newPost.value)
         showCreatePost.value = false
         newPost.value = { title: '', content: '', categoryId: '' }
