@@ -16,7 +16,7 @@
 
 
     <div class="posts-list">
-      <div v-if="!posts.length">暂无帖子</div>
+
       
       <div v-for="post in posts" :key="post.id" class="post-card" @click="goToPost(post.id)">
         <h3>{{ post.title }}</h3>

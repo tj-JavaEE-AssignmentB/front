@@ -4,12 +4,15 @@
     <div class="post-content">
       <div class="author-info" @click="goToUserProfile(post.authorId)">
         <img :src="post.authorAvatar" class="avatar" />
-        <span class="author-name">{{ post.authorName }}</span>
+        <div class="author-meta">
+          <span class="author-name">{{ post.authorName }}</span>
+          <span class="post-time">{{ post.createTime }}</span>
+        </div>
       </div>
       
       <div class="post-body">
-        <h2>{{ post.title }}</h2>
-        <p>{{ post.content }}</p>
+        <h1 class="post-title">{{ post.title }}</h1>
+        <div class="post-text">{{ post.content }}</div>
       </div>
 
       <div class="post-actions">
@@ -34,8 +37,15 @@
     <!-- 评论区 -->
     <div class="comments-section">
       <div class="comment-form">
-        <textarea v-model="newComment" placeholder="发表评论..."></textarea>
-        <el-button @click="submitComment">发表</el-button>
+        <el-input
+          v-model="newComment"
+          type="textarea"
+          :rows="3"
+          placeholder="发表评论..."
+          resize="none"
+          class="transparent-input"
+        ></el-input>
+        <el-button type="primary" @click="submitComment">发表评论</el-button>
       </div>
 
       <div class="comments-list">
@@ -99,8 +109,8 @@ export default {
         authorId: '',
         authorName: '',
         authorAvatar: '',
-        likes: 0,
-        dislikes: 0,
+        likes: '',
+        dislikes: '',
         isLiked: false,
         isDisliked: false,
         likedUsers: [],
@@ -110,23 +120,24 @@ export default {
       newComment: {
           content: '',
         commentTime: ''
-      }
+      },
+      postId: null
     }
   },
   methods: {
     async fetchPostDetail() {
       try {
-        // 获取帖子详情的API调用
-        const response = await getPostDetails(this.$route.params.id)
-        this.post = response.data
+        
+        const response = await getPostDetails(this.postId)
+        this.post = response.data.data
       } catch (error) {
         this.$message.error('获取帖子详情失败')
       }
     },
 
     async fetchComments() {
-      const response = await getComments(this.post.id)
-      this.comments = response.data
+      const response = await getComments(this.postId)
+      this.comments = response.data.data
     },
     
     async handlePostLike() {
@@ -242,6 +253,17 @@ export default {
 
   },
   created() {
+    // 从路由路径中获取 postId
+    const pathParts = this.$route.path.split('/')
+    this.postId = pathParts[pathParts.length - 1]  // 获取路径最后一部分作为 postId
+    
+    if (!this.postId) {
+      this.$message.error('无效的帖子ID')
+      this.$router.push('/')
+      return
+    }
+    
+    console.log('获取到的帖子ID:', this.postId) // 调试用
     this.fetchPostDetail()
     this.fetchComments()
   }
@@ -250,79 +272,236 @@ export default {
 
 <style scoped>
 .forum-detail {
-  padding: 20px;
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 30px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 16px rgb(255, 255, 255);
 }
 
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  cursor: pointer;
+.post-content {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #ffffff;
+  min-height: 300px;  /* 设置最小高度 */
 }
 
-.post-actions,
-.comment-actions {
-  margin-top: 10px;
-}
-
-.like-btn {
-  cursor: pointer;
-}
-
-.like-btn.active {
-  color: #e74c3c;
-}
-
-.comment-form {
-  margin: 20px 0;
-}
-
-.comment-form textarea {
-  width: 100%;
-  min-height: 80px;
-  margin-bottom: 10px;
-}
-
-.comment-item {
+.author-info {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  transition: background-color 0.3s;
   margin-bottom: 20px;
-  padding: 10px;
   border-bottom: 1px solid #eee;
 }
 
-.comment-actions {
+.author-info:hover {
+  background-color: #f5f7fa;
+}
+
+.avatar {
+  width: 56px;  /* 更大的头像 */
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+}
+
+.author-meta {
+  margin-left: 16px;
+}
+
+.author-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.post-time {
+  font-size: 14px;
+  color: #909399;
+  margin-top: 6px;
+}
+
+.post-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 20px;
+  padding: 0 12px;
+}
+
+.post-text {
+  flex: 1;  /* 让文本内容占据剩余空间 */
+  font-size: 16px;
+  line-height: 1.8;
+  color: #333;
+  padding: 0 12px;
+  overflow-y: auto;  /* 内容过多时显示滚动条 */
+  white-space: pre-wrap;
+}
+
+.post-actions {
   display: flex;
-  gap: 10px;
-  margin-top: 8px;
+  gap: 24px;
+  padding: 16px 12px;
+  border-top: 1px solid #000000;
+  margin-top: auto;  /* 将操作栏推到底部 */
+  justify-content: flex-end;  /* 按钮靠右对齐 */
 }
 
 .action-btn {
-  padding: 4px 8px;
+  height: 20px;
+  padding: 0 20px;
+  font-size: 15px;
+  border-radius: 20px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid #dcdfe6;
+}
+
+.action-btn:hover {
+  background-color: #f5f7fa;
 }
 
 .action-btn.active {
   color: #409EFF;
+  border-color: #409EFF;
+}
+
+/* 评论区样式 */
+.comments-section {
+  padding: 24px 12px;
+}
+
+.comments-title {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #ebeef5;
+  color: #2c3e50;
+}
+
+.comment-form {
+  margin-bottom: 36px;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.comment-form .el-input {
+  margin-bottom: 16px;
+}
+
+.comment-form .el-button {
+  height: 40px;
+  padding: 0 24px;
+  font-size: 15px;
+}
+
+.comment-item {
+  padding: 20px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  border: 1px solid #ebeef5;
+  transition: all 0.3s ease;
+}
+
+.comment-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.commenter-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.commenter-meta {
+  margin-left: 16px;
+}
+
+.commenter-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.comment-date {
+  font-size: 13px;
+  color: #909399;
+  margin-left: 12px;
+}
+
+.comment-content {
+  margin: 16px 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #333;
+  padding: 0 8px;
+}
+
+.comment-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #ebeef5;
+}
+
+.comment-actions .action-btn {
+  height: 32px;  /* 评论区按钮稍小 */
+  padding: 0 16px;
+  font-size: 14px;
 }
 
 .reaction-stats {
-  color: #666;
-  font-size: 0.9em;
-  cursor: pointer;
-  margin: 0 10px;
+  font-size: 13px;
+  color: #606266;
+  margin-left: auto;  /* 将统计信息推到右边 */
 }
 
-.reaction-details {
-  font-size: 0.9em;
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .post-content {
+    padding: 16px;
+  }
+
+  .post-body {
+    padding: 12px;
+  }
+
+  .post-title {
+    font-size: 24px;
+  }
 }
 
-.reaction-details > div {
-  margin-bottom: 8px;
+.post-body {
+  flex: 1;  /* 让内容区域占据剩余空间 */
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  margin: 20px 0;
+  border: 1px solid #010a1f;
+  border-radius: 8px;
 }
 
-.reaction-details strong {
-  display: block;
-  margin-bottom: 4px;
+/* 透明输入框样式 */
+.transparent-input :deep(.el-textarea__inner) {
+  background-color: transparent;
+  border: 1px solid #dcdfe6;
+}
+
+.transparent-input :deep(.el-textarea__inner:focus) {
+  background-color: rgba(255, 255, 255, 0.9);
 }
 </style> 
