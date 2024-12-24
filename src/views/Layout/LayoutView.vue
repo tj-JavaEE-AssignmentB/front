@@ -63,7 +63,7 @@ export default {
       try {
         // 并行请求数据
         const [categoriesRes] = await Promise.all([
-          getCategories(),
+          getCategories().data,
         ])
         categories.value = categoriesRes.data
       } catch (error) {

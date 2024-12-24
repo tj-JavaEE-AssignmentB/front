@@ -101,3 +101,19 @@ export const dislikePost = (postId)=>{
     url: `/post/${postId}/dislike`,
   })
 }
+
+// 删除帖子
+export const deletePost = (postId) => {
+  return request({
+    method: 'DELETE',
+    url: `/post/${postId}`,
+  })
+}
+
+// 删除评论
+export const deleteComment = (commentId) => {
+  return request({
+    method: 'DELETE',
+    url: `/comment/${commentId}`,
+  })
+}

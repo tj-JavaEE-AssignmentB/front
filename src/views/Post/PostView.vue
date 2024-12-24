@@ -31,14 +31,22 @@
           <i class="el-icon-thumb" style="transform: rotate(180deg)"></i>
           <span>{{ post.dislikes || 0 }}</span>
         </el-button>
+
+        <el-button 
+          v-if="isAdmin"
+          type="danger"
+          @click="handleDeletePost"
+        >
+          删除帖子
+        </el-button>
       </div>
     </div>
 
     <!-- 评论区 -->
     <div class="comments-section">
-      <div class="comment-form">
+      <div v-if="!isVisitor" class="comment-form">
         <el-input
-          v-model="newComment"
+          v-model="newComment.content"
           type="textarea"
           :rows="3"
           placeholder="发表评论..."
@@ -88,6 +96,15 @@
                 </span>
               </template>
             </el-popover>
+
+            <el-button 
+              v-if="isAdmin"
+              type="danger"
+              size="small"
+              @click="handleDeleteComment(comment.id)"
+            >
+              删除
+            </el-button>
           </div>
         </div>
       </div>
@@ -96,12 +113,15 @@
 </template>
 
 <script>
-import { getPostDetails, likePost, dislikePost, reportPost, createComment, getComments, likeComment, dislikeComment } from '@/apis/forum'
+import { getPostDetails, likePost, dislikePost, reportPost, createComment, getComments, likeComment, dislikeComment, deletePost, deleteComment } from '@/apis/forum'
+import { identityGet } from '@/apis/identity'  // 假设这是获取身份的API
 
 export default {
   name: 'ForumDetail',
   data() {
     return {
+      isAdmin: false,
+      isVisitor: false,
       post: {
         id: '',
         title: '',
@@ -118,8 +138,9 @@ export default {
       },
       comments: [],
       newComment: {
-          content: '',
-        commentTime: ''
+        content: '',
+        commentTime: '',
+        postId: ''
       },
       postId: null
     }
@@ -190,11 +211,10 @@ export default {
     },
 
     async submitComment() {
-      if (!this.newComment.trim()) return
+      if (!this.newComment.content.trim()) return
       
       try {
         const now = new Date();
-        // 格式化时间为 "yyyy-MM-dd HH:mm:ss"
         const ptime = now.getFullYear() + '-' + 
           String(now.getMonth() + 1).padStart(2, '0') + '-' +
           String(now.getDate()).padStart(2, '0') + ' ' +
@@ -202,15 +222,21 @@ export default {
           String(now.getMinutes()).padStart(2, '0') + ':' +
           String(now.getSeconds()).padStart(2, '0');
 
-        await createComment({
-          postId: this.post.id,
-          content: this.newComment,
-          commentTime: ptime
-        })
-        this.newComment = ''
+
+        this.newComment.postId = this.post.id
+        this.newComment.commentTime = ptime
+        await createComment(this.newComment)
+        
+        this.newComment = {
+          content: '',
+          commentTime: '',
+          postId: ''
+        }
+        
         await this.fetchComments()
         this.$message.success('评论成功')
       } catch (error) {
+        console.error('评论失败:', error)
         this.$message.error('评论失败')
       }
     },
@@ -249,6 +275,51 @@ export default {
       } catch (error) {
         this.$message.error('操作失败')
       }
+    },
+
+    async handleDeletePost() {
+      try {
+        await this.$confirm('确定要删除这个帖子吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+        await deletePost(this.postId)
+        this.$message.success('删除成功')
+        this.$router.push('/')
+      } catch (error) {
+        if (error !== 'cancel') {
+          this.$message.error('删除失败')
+        }
+      }
+    },
+
+    async handleDeleteComment(commentId) {
+      try {
+        await this.$confirm('确定要删除这条评论吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+        await deleteComment(commentId)
+        this.$message.success('删除成功')
+        await this.fetchComments()
+      } catch (error) {
+        if (error !== 'cancel') {
+          this.$message.error('删除失败')
+        }
+      }
+    },
+
+    async fetchUserIdentity() {
+      try {
+        const response = await identityGet()
+        const identity = response.data.identity
+        this.isAdmin = identity === 'admin'
+        this.isVisitor = identity === 'visitor'
+      } catch (error) {
+        console.error('获取用户身份失败:', error)
+      }
     }
 
   },
@@ -266,6 +337,7 @@ export default {
     console.log('获取到的帖子ID:', this.postId) // 调试用
     this.fetchPostDetail()
     this.fetchComments()
+    this.fetchUserIdentity()  // 获取用户身份
   }
 }
 </script>

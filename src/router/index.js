@@ -44,7 +44,7 @@ const router = createRouter({
       ]
     },
     {
-      path: '/usercenter',
+      path: '/usercenter/:userid',
       name: 'usercenter',
       component: UserCenterView,
     },
