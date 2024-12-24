@@ -8,7 +8,7 @@ AdminCenter：
 管理员中心页面，可以进行独属于管理员的功能
 AdminLogin：
 管理员登录页面
-Category：
+Category：   
 特定板块页面
 Home：
 主页面（搜索后也为此页面）

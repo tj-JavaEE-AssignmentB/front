@@ -18,14 +18,14 @@
         <h3>{{ post.title }}</h3>
         <p class="post-preview">{{ post.content.substring(0, 100) }}...</p>
         <div class="post-meta">
-          <span>{{ post.author }}</span>
+          <span>{{ post.authorName }}</span>
           <span>{{ post.releaseTime }}</span>
           <div class="post-stats">
             <span>👍 {{ post.likes }}</span>
           </div>
         </div>
       </div>
-      
+
     </div>
   </div>
 </template>
