@@ -115,7 +115,7 @@ function login(){
       if(response.data.code===1){
         console.log("登录成功");
         localStorage.setItem("token",response.data.data);
-        router.push("/usercenter");
+        router.push("/admincenterr");
       }else{
         console.log("登录失败");
         alert("账号或密码错误");
@@ -136,7 +136,7 @@ function register(){
       if(response.data.code===1){
         console.log("注册成功");
         localStorage.setItem("token",response.data.data);
-        router.push("/usercenter");
+        router.push("/admincenter");
       }else{
         console.log("注册失败");
         alert("注册失败")
