@@ -1,7 +1,7 @@
 <template>
   <div class="home">
 
-
+  
 
     <el-row :gutter="20" class="category-list">
       <el-col :span="3" v-for="category in categories" :key="category.id">
@@ -16,8 +16,8 @@
 
 
     <div class="posts-list">
-      <div v-if="!posts.length">暂无帖子</div>
 
+      
       <div v-for="post in posts" :key="post.id" class="post-card" @click="goToPost(post.id)">
         <h3>{{ post.title }}</h3>
         <p class="post-preview">{{ post.content?.substring(0, 100) || '' }}...</p>
@@ -31,9 +31,6 @@
       </div>
     </div>
 
-    <button @click="goToUserCenter">前往个人中心</button>
-    <button @click="goToUserHomePage">前往个人主页</button>
-
   </div>
 </template>
 
@@ -43,25 +40,6 @@ import { useRouter } from 'vue-router'
 import { getCategories,getRecentPosts } from '@/apis/forum'
 
 export default {
-  data() {
-    return {
-      currentUserId: '123', // 这里替换成实际的用户ID逻辑
-    };
-  },
-  methods: {
-    goToUserCenter() {
-      this.$router.push({
-        name: 'usercenter',
-        params: { userid: this.currentUserId }
-      });
-    },
-    goToUserHomePage() {
-      this.$router.push({
-        name: 'userhomepage',
-        params: { userid: this.currentUserId }
-      });
-    }
-  },
   name: 'HomeView',
   setup() {
     const router = useRouter()
@@ -76,8 +54,8 @@ export default {
           getCategories(),
           getRecentPosts()
         ])
-
-        categories.value = categoriesRes.data
+        
+        categories.value = categoriesRes.data.data
         posts.value = postsRes.data.data
 
         console.log('Posts loaded:', posts.value)
@@ -155,4 +133,4 @@ export default {
 }
 
 
-</style>
+</style> 

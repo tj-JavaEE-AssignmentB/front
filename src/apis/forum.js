@@ -95,9 +95,18 @@ export const dislikeComment = (commentId) => {
   })
 }
 
-export const dislikePost = (postId)=>{
+// 删除帖子
+export const deletePost = (postId) => {
   return request({
-    method: 'POST',
-    url: `/post/${postId}/dislike`,
+    method: 'DELETE',
+    url: `/post/${postId}`,
+  })
+}
+
+// 删除评论
+export const deleteComment = (commentId) => {
+  return request({
+    method: 'DELETE',
+    url: `/comment/${commentId}`,
   })
 }

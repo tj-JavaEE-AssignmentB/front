@@ -20,9 +20,6 @@
       加载中...
     </div>
     
-    <div v-else-if="posts.length === 0" class="no-posts">
-      该分类下暂无帖子
-    </div>
     
     <div v-else class="posts-list">
       <div v-for="post in posts" 
@@ -62,7 +59,7 @@ export default {
     const fetchCategories = async () => {
       try {
         const res = await getCategories()
-        categories.value = res.data
+        categories.value = res.data.data
       } catch (error) {
         console.error('获取分类失败:', error)
       }
@@ -73,7 +70,7 @@ export default {
       loading.value = true
       try {
         const res = await getPostsByCategory(categoryId)
-        posts.value = res.data
+        posts.value = res.data.data
       } catch (error) {
         console.error('获取帖子失败:', error)
       } finally {

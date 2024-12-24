@@ -48,7 +48,7 @@ export default {
       loading.value = true
       try {
         const response = await searchPosts(keyword.value)
-        searchResults.value = response.data
+        searchResults.value = response.data.data
       } catch (error) {
         console.error('搜索失败:', error)
       } finally {
